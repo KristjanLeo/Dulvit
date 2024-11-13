@@ -4,6 +4,8 @@ you agree to license your contribution under the MIT license
 to this project.**
 
 # Dulvit
+*ATH. að pakkinn er alls ekki tilbúinn. Það á eftir að bæta heilmiklu við hann og laga ýmsa hluti.*
+
 
 ## 1.  Hvað er Dulvit?
 Dulvit er einfaldur og þæginlegur en á sama tíma hægvirkur og umfangslítill pakki til að búa til, þjálfa og nota tauganet í Javascript.
