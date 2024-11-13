@@ -35,6 +35,11 @@ let [trainLosses,_] = m.train(xTrain, yTrain, options);
 
 Þar sem ```xTrain``` og ```yTrain``` eru af gerðinni ```Matrix``` úr **gv.js** og ```options``` er hlutur sem inniheldur einhverjar stillingar.
 
+### Matrix
+Matrix úr gv.js tekur inn fylki af fylkjum:
+```javascript
+let mat = new Matrix([[1, 2], [3, 4]])
+```
 
 ## 3. Nánari skjölun
 Nánari skjölun síðar.
