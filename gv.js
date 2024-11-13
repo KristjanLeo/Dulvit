@@ -70,7 +70,6 @@ GV.Matrix = function(rows) {
 		this[i] = rows[i];
 	}
 
-
 	this.toString = () => {
 		let str = '[';
 		for(i in rows) str += '[' + rows[i].toString() + '],';
@@ -107,17 +106,6 @@ Object.defineProperties(GV.Matrix.prototype, {
 				}
 			}
 			return new GV.Matrix(n);
-		}
-	},
-	flat: {
-		get: function() {
-			let n = [];
-			for(let i = 0; i < this.rows[0].length; i++) {
-				for(let j = 0; j < this.rows.length; j++) {
-					n.push(this.rows[j][i]);
-				}
-			}
-			return new Matrix([n])
 		}
 	}
 });
@@ -221,7 +209,10 @@ GV.dot = (a, b) => {
 GV.subtractVector = (a, b, inplace=false) => {
 
 	if(inplace) {
-		for(let i = 0; i < a.length; i++) a[i] -= b[i];
+		for(let i = 0; i < a.length; i++) {
+			a[i] -= b[i];
+			a.values[i] -= b[i];
+		}
 		return;
 	}
 
@@ -233,7 +224,10 @@ GV.subtractVector = (a, b, inplace=false) => {
 GV.multiplyVector = (a, b, inplace=false) => {
 
 	if(inplace) {
-		for(let i = 0; i < a.length; i++) a[i] *= b[i];
+		for(let i = 0; i < a.length; i++) {
+			a[i] *= b[i];
+			a.values[i] *= b[i];
+		}
 		return;
 	}
 
@@ -248,6 +242,7 @@ GV.subtractMatrix = (m1, m2, inplace=false) => {
 		for(let i = 0; i < m1.length; i++) {
 			for(let j = 0; j < m1[0].length; j++) {
 				m1[i][j] -= m2[i][j];
+				m1.rows[i][j] -= m2[i][j];
 			}
 		}
 		return;
@@ -269,6 +264,7 @@ GV.addMatrix = (m1, m2, inplace=false) => {
 		for(let i = 0; i < m1.length; i++) {
 			for(let j = 0; j < m1[0].length; j++) {
 				m1[i][j] += m2[i][j];
+				m1.rows[i][j] += m2[i][j];
 			}
 		}
 		return;
@@ -290,6 +286,7 @@ GV.multiplyMatrix = (m1, m2, inplace=false) => {
 		for(let i = 0; i < m1.length; i++) {
 			for(let j = 0; j < m1[0].length; j++) {
 				m1[i][j] *= m2[i][j];
+				m1.rows[i][j] *= m2[i][j];
 			}
 		}
 		return;
@@ -311,6 +308,7 @@ GV.multiplyMatrixVector = (m, v, inplace=false) => {
 		for(let i = 0; i < m.length; i++) {
 			for(let j = 0; j < m[0].length; j++) {
 				m[i][j] *= v[i];
+				m.rows[i][j] *= v[i];
 			}
 		}
 		return;
@@ -330,6 +328,7 @@ GV.mapMat = (m, f, inplace=false) => {
 	if(inplace) {
 		for(let i = 0; i < m.length; i++) {
 			m[i] = m[i].map((i) => f(i));
+			m.rows[i] = m[i];
 		}
 		return;
 	}
@@ -344,6 +343,9 @@ GV.mapMat = (m, f, inplace=false) => {
 GV.mapVec = (v, f, inplace=false) => {
 	if(inplace) {
 		v.values = v.values.map((i) => f(i));
+		for(let i = 0; i < v.length; i++) {
+			v[i] = f(v[i]);
+		}
 		return;
 	}
 	return new Vector(v.values.map((i) => f(i)));
