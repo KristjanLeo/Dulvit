@@ -4,7 +4,7 @@ you agree to license your contribution under the MIT license
 to this project.**
 
 # Dulvit
-*ATH. að pakkinn er alls ekki tilbúinn. Það á eftir að bæta heilmiklu við hann og laga ýmsa hluti. Ekki er hægt að tryggja að allt saman sé 100% rétt á þessum tímapunkti.*
+*ATH. að pakkinn er alls ekki tilbúinn. Það á eftir að bæta heilmiklu við hann og laga ýmsa hluti. Ekki er hægt að tryggja að allt sé 100% rétt á þessum tímapunkti.*
 
 
 ## 1.  Hvað er Dulvit?
