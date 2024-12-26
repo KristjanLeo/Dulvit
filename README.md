@@ -33,13 +33,26 @@ Til að þjálfa líkanið er keyrt:
 let [trainLosses,_] = m.train(xTrain, yTrain, options);
 ```
 
-Þar sem ```xTrain``` og ```yTrain``` eru af gerðinni ```Matrix``` úr **gv.js** og ```options``` er hlutur sem inniheldur einhverjar stillingar.
+Þar sem ```xTrain``` og ```yTrain``` eru af gerðinni ```Matrix``` úr **gv.js** og ```options``` er hlutur sem inniheldur einhverjar stillingar eins og t.d.:
+```javascript
+maxEpochs: 10,
+minEpochs: 10,
+batchSize: 4,
+lr: 0.001,
+lrDecay: 0.99
+```
+
 
 ### Matrix
 Matrix úr gv.js tekur inn fylki af fylkjum:
 ```javascript
 let mat = new Matrix([[1, 2], [3, 4]])
 ```
+Vector úr gv.js tekur inn fylki af gildum:
+```javascript
+let vec = new Vector([1, 2, 3, 4])
+```
+Athugið að ef gildi í mat eru uppfærð þarf að passa að uppfæra líka ```mat.rows``` og eins með ```vec.values``` fyrir ```Vector``` gildi.
 
 ## 3. Nánari skjölun
 Nánari skjölun síðar.
