@@ -10,7 +10,10 @@ to this project.**
 ## 1.  Hvað er Dulvit?
 Dulvit er einfaldur og þæginlegur en á sama tíma hægvirkur og umfangslítill pakki til að búa til, þjálfa og nota tauganet í Javascript.
 
-## 2.  Hvernig virkar pakkinn?
+## 2. Dæmi um síðu sem notar pakkann
+<a href="https://rl-mylla.netlify.app/">https://rl-mylla.netlify.app/</a> (*ósigrandi líkan sem spilar leikinn Myllu*)
+
+## 3.  Hvernig virkar pakkinn?
 Byrjað er á að sækja nokkra smiði úr **nn.js**, t.d. ```Model, Dense``` og ```SquareLoss``` (einnig til ```Softmax```):
 ```javascript
 const {
@@ -59,5 +62,5 @@ let vec = new Vector([1, 2, 3, 4])
 
 *Athugið að þegar gildi í mat eru uppfærð þarf að passa að uppfæra líka ```mat.rows``` og eins með ```vec.values``` fyrir ```Vector``` gildi.*
 
-## 3. Nánari skjölun
+## 4. Nánari skjölun
 Nánari skjölun síðar.
