@@ -9,8 +9,9 @@ to this project.**
 ## 1.  Hvað er Dulvit?
 Dulvit er einfaldur og þæginlegur en á sama tíma hægvirkur og umfangslítill pakki til að búa til, þjálfa og nota tauganet í Javascript.
 
-## 2. Dæmi um síðu sem notar pakkann
+## 2. Dæmi um síður sem nota pakkann
 <a href="https://rl-mylla.netlify.app/">https://rl-mylla.netlify.app/</a> (*ósigrandi líkan sem spilar leikinn Myllu*)
+
 <a href="https://erumferd.is">https://erumferd.is</a> (Spálíkan sem spáir fyrir um umferð)
 
 ## 3. Nánari skjölun
