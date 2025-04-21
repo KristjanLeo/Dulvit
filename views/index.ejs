@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dulvit Training Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/css/styles.css">
+        <link rel="stylesheet" href="/css/dashboard.css">
+    </head>
+    <body>
+        <main>
+            <div class="dashboard">
+                <div class="dashboard-header">
+                    <h1>Dulvit Training Dashboard</h1>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h2>Training Progress</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-label">Current Loss</div>
+                                <div class="metric-value" id="current-loss">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Validation Loss</div>
+                                <div class="metric-value" id="current-validation-loss">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Best Loss</div>
+                                <div class="metric-value" id="best-loss">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h2>Model Metrics</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-label">Accuracy</div>
+                                <div class="metric-value" id="current-accuracy">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Precision</div>
+                                <div class="metric-value" id="current-precision">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card full-width">
+                        <h2>Training Info</h2>
+                        <div class="training-info">
+                            <span>Epoch: <span id="current-epoch">0</span></span>
+                            <span>Current LR: <span id="current-lr">-</span></span>
+                            <span>Time: <span id="training-time">0s</span></span>
+                        </div>
+                    </div>
+                    <div class="dashboard-card full-width">
+                        <div class="metrics-charts">
+                            <div id="loss-chart"></div>
+                            <div id="accuracy-chart"></div>
+                            <div id="precision-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/grof.js"></script>
+        <script src="/js/main.js"></script>
+    </body>
+</html> 
