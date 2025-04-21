@@ -1041,25 +1041,22 @@ GV.sum = (mv, axis=null) => {
 		}
 
 		if(axis === 0) {
-			// Pre-allocate array for better performance
-			const sums = new Array(mv.length).fill(0);
-			const cols = mv[0].length;
-			for(let i = 0; i < mv.length; i++) {
-				const row = mv[i];
-				for(let j = 0; j < cols; j++) {
-					sums[i] += row[j];
+			// Sum along columns (vertical sum)
+			const sums = new Array(mv[0].length).fill(0);
+			for(let j = 0; j < mv[0].length; j++) {
+				for(let i = 0; i < mv.length; i++) {
+					sums[j] += mv[i][j];
 				}
 			}
 			return new GV.Vector(sums);
 		}
 
 		if(axis === 1) {
-			// Pre-allocate array for better performance
-			const sums = new Array(mv[0].length).fill(0);
-			const rows = mv.length;
-			for(let j = 0; j < mv[0].length; j++) {
-				for(let i = 0; i < rows; i++) {
-					sums[j] += mv[i][j];
+			// Sum along rows (horizontal sum)
+			const sums = new Array(mv.length).fill(0);
+			for(let i = 0; i < mv.length; i++) {
+				for(let j = 0; j < mv[0].length; j++) {
+					sums[i] += mv[i][j];
 				}
 			}
 			return new GV.Vector(sums);
@@ -1277,25 +1274,99 @@ GV.argmax = (mv, axis=null) => {
 	return null;
 }
 
-GV.randomPermutation = (v) => {
-	
-	let idx = 0;
-	
-	for(let i = 0; i < v.length; i++) {
-
-		let newIdx = parseInt(Math.random()*v.length);
-
-		// Swap values in the internal array
-		let t = v.values[idx];
-		v.values[idx] = v.values[newIdx];
-		v.values[newIdx] = t;
-
-		// Update direct properties
-		v[idx] = v.values[idx];
-		v[newIdx] = v.values[newIdx];
-
-		idx = newIdx;
+GV.randomPermutation = (v, axis=null) => {
+	// Input validation
+	if (!v) {
+		console.error('Input is undefined or null');
+		return null;
 	}
+	
+	// Handle Vector type
+	if (v.type === 'Vector') {
+		// Create a copy of the vector to avoid modifying the original
+		const result = v.clone();
+		
+		// Fisher-Yates (Knuth) shuffle algorithm
+		for (let i = result.length - 1; i > 0; i--) {
+			// Generate a random index between 0 and i (inclusive)
+			const j = Math.floor(Math.random() * (i + 1));
+			
+			// Swap elements
+			const temp = result.values[i];
+			result.values[i] = result.values[j];
+			result.values[j] = temp;
+			
+			// Update direct properties
+			result[i] = result.values[i];
+			result[j] = result.values[j];
+		}
+		
+		return result;
+	}
+	
+	// Handle Matrix type
+	if (v.type === 'Matrix') {
+		// Create a copy of the matrix to avoid modifying the original
+		const result = v.clone();
+		
+		// If axis is null, permute all elements (flatten, shuffle, reshape)
+		if (axis === null) {
+			// Flatten the matrix
+			const flattened = GV.flatten(result);
+			
+			// Shuffle the flattened vector
+			const shuffled = GV.randomPermutation(flattened);
+			
+			// Reshape back to the original dimensions
+			return GV.reshapeMatrix(shuffled, result.length, result[0].length);
+		}
+		
+		// If axis is 0, permute rows
+		if (axis === 0) {
+			// Fisher-Yates shuffle for rows
+			for (let i = result.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				
+				// Swap rows
+				const temp = result.rows[i];
+				result.rows[i] = result.rows[j];
+				result.rows[j] = temp;
+				
+				// Update direct properties
+				result[i] = result.rows[i];
+				result[j] = result.rows[j];
+			}
+			
+			return result;
+		}
+		
+		// If axis is 1, permute columns
+		if (axis === 1) {
+			// Fisher-Yates shuffle for columns
+			for (let i = result[0].length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				
+				// Swap columns
+				for (let row = 0; row < result.length; row++) {
+					const temp = result.rows[row][i];
+					result.rows[row][i] = result.rows[row][j];
+					result.rows[row][j] = temp;
+					
+					// Update direct properties
+					result[row][i] = result.rows[row][i];
+					result[row][j] = result.rows[row][j];
+				}
+			}
+			
+			return result;
+		}
+		
+		console.error('Invalid axis parameter for matrix permutation');
+		return result;
+	}
+	
+	console.error('Input must be a Vector or Matrix');
+	return null;
 }
 
 GV.fromIndices = (mv, indices, axis=null) => {
@@ -1382,134 +1453,129 @@ GV.scaleVector = (v, scale, inplace=false) => {
 
 // Mean of a vector or matrix
 GV.mean = (mv, axis=null) => {
-	if(mv.type === 'Vector') {
-		// Use a single loop for better performance
-		let sum = 0;
-		const len = mv.length;
-		for(let i = 0; i < len; i++) {
-			sum += mv[i];
-		}
-		return sum / len;
-	} else if(mv.type === 'Matrix') {
-		if(axis === null) {
-			// Use a single loop for better performance
-			let sum = 0;
-			const rows = mv.length;
-			const cols = mv[0].length;
-			const size = rows * cols;
-			for(let i = 0; i < rows; i++) {
-				const row = mv[i];
-				for(let j = 0; j < cols; j++) {
-					sum += row[j];
-				}
-			}
-			return sum / size;
-		} else if(axis === 0) {
-			const sums = GV.sum(mv, 0);
-			const cols = mv[0].length;
-			// Pre-allocate result vector
-			const means = new Array(sums.length);
-			for(let i = 0; i < sums.length; i++) {
-				means[i] = sums[i] / cols;
-			}
-			return new GV.Vector(means);
-		} else if(axis === 1) {
-			const sums = GV.sum(mv, 1);
-			const rows = mv.length;
-			// Pre-allocate result vector
-			const means = new Array(sums.length);
-			for(let i = 0; i < sums.length; i++) {
-				means[i] = sums[i] / rows;
-			}
-			return new GV.Vector(means);
-		}
-	}
+    if(mv.type === 'Vector') {
+        // Use a single loop for better performance
+        let sum = 0;
+        const len = mv.length;
+        for(let i = 0; i < len; i++) {
+            sum += mv[i];
+        }
+        return sum / len;
+    } else if(mv.type === 'Matrix') {
+        if(axis === null) {
+            // Use a single loop for better performance
+            let sum = 0;
+            const rows = mv.length;
+            const cols = mv[0].length;
+            const size = rows * cols;
+            for(let i = 0; i < rows; i++) {
+                const row = mv[i];
+                for(let j = 0; j < cols; j++) {
+                    sum += row[j];
+                }
+            }
+            return sum / size;
+        } else if(axis === 0) {
+            // Column-wise mean
+            const cols = mv[0].length;
+            const rows = mv.length;
+            const means = new Array(cols);
+            for(let j = 0; j < cols; j++) {
+                let sum = 0;
+                for(let i = 0; i < rows; i++) {
+                    sum += mv[i][j];
+                }
+                means[j] = sum / rows;
+            }
+            return new GV.Vector(means);
+        } else if(axis === 1) {
+            // Row-wise mean
+            const rows = mv.length;
+            const cols = mv[0].length;
+            const means = new Array(rows);
+            for(let i = 0; i < rows; i++) {
+                let sum = 0;
+                for(let j = 0; j < cols; j++) {
+                    sum += mv[i][j];
+                }
+                means[i] = sum / cols;
+            }
+            return new GV.Vector(means);
+        }
+    }
 }
 
 // Variance of a vector or matrix
 GV.var = (mv, axis=null, ddof=0) => {
-	if(mv.type === 'Vector') {
-		// Calculate mean first
-		let sum = 0;
-		const len = mv.length;
-		for(let i = 0; i < len; i++) {
-			sum += mv[i];
-		}
-		const mean = sum / len;
-		
-		// Calculate variance in a single pass
-		let sumSquaredDiff = 0;
-		for(let i = 0; i < len; i++) {
-			const diff = mv[i] - mean;
-			sumSquaredDiff += diff * diff;
-		}
-		return sumSquaredDiff / (len - ddof);
-	} else if(mv.type === 'Matrix') {
-		if(axis === null) {
-			// Calculate mean first
-			let sum = 0;
-			const rows = mv.length;
-			const cols = mv[0].length;
-			const size = rows * cols;
-			for(let i = 0; i < rows; i++) {
-				const row = mv[i];
-				for(let j = 0; j < cols; j++) {
-					sum += row[j];
-				}
-			}
-			const mean = sum / size;
-			
-			// Calculate variance in a single pass
-			let sumSquaredDiff = 0;
-			for(let i = 0; i < rows; i++) {
-				const row = mv[i];
-				for(let j = 0; j < cols; j++) {
-					const diff = row[j] - mean;
-					sumSquaredDiff += diff * diff;
-				}
-			}
-			return sumSquaredDiff / (size - ddof);
-		} else if(axis === 0) {
-			const means = GV.mean(mv, 0);
-			const rows = mv.length;
-			// Pre-allocate result vector
-			const variances = new Array(mv[0].length);
-			for(let j = 0; j < mv[0].length; j++) {
-				let sumSquaredDiff = 0;
-				for(let i = 0; i < rows; i++) {
-					const diff = mv[i][j] - means[j];
-					sumSquaredDiff += diff * diff;
-				}
-				variances[j] = sumSquaredDiff / (rows - ddof);
-			}
-			return new GV.Vector(variances);
-		} else if(axis === 1) {
-			const means = GV.mean(mv, 1);
-			const cols = mv[0].length;
-			// Pre-allocate result vector
-			const variances = new Array(mv.length);
-			for(let i = 0; i < mv.length; i++) {
-				let sumSquaredDiff = 0;
-				const row = mv[i];
-				for(let j = 0; j < cols; j++) {
-					const diff = row[j] - means[i];
-					sumSquaredDiff += diff * diff;
-				}
-				variances[i] = sumSquaredDiff / (cols - ddof);
-			}
-			return new GV.Vector(variances);
-		}
-	}
+    if(mv.type === 'Vector') {
+        const mean = GV.mean(mv);
+        let sumSquaredDiff = 0;
+        const len = mv.length;
+        for(let i = 0; i < len; i++) {
+            const diff = mv[i] - mean;
+            sumSquaredDiff += diff * diff;
+        }
+        return sumSquaredDiff / (len - ddof);
+    } else if(mv.type === 'Matrix') {
+        if(axis === null) {
+            const mean = GV.mean(mv);
+            let sumSquaredDiff = 0;
+            const rows = mv.length;
+            const cols = mv[0].length;
+            const size = rows * cols;
+            for(let i = 0; i < rows; i++) {
+                const row = mv[i];
+                for(let j = 0; j < cols; j++) {
+                    const diff = row[j] - mean;
+                    sumSquaredDiff += diff * diff;
+                }
+            }
+            return sumSquaredDiff / (size - ddof);
+        } else if(axis === 0) {
+            // Column-wise variance
+            const means = GV.mean(mv, 0);
+            const rows = mv.length;
+            const cols = mv[0].length;
+            const variances = new Array(cols);
+            for(let j = 0; j < cols; j++) {
+                let sumSquaredDiff = 0;
+                for(let i = 0; i < rows; i++) {
+                    const diff = mv[i][j] - means[j];
+                    sumSquaredDiff += diff * diff;
+                }
+                variances[j] = sumSquaredDiff / (rows - ddof);
+            }
+            return new GV.Vector(variances);
+        } else if(axis === 1) {
+            // Row-wise variance
+            const means = GV.mean(mv, 1);
+            const cols = mv[0].length;
+            const variances = new Array(mv.length);
+            for(let i = 0; i < mv.length; i++) {
+                let sumSquaredDiff = 0;
+                const row = mv[i];
+                for(let j = 0; j < cols; j++) {
+                    const diff = row[j] - means[i];
+                    sumSquaredDiff += diff * diff;
+                }
+                variances[i] = sumSquaredDiff / (cols - ddof);
+            }
+            return new GV.Vector(variances);
+        }
+    }
 }
 
 // Standard deviation of a vector or matrix
 GV.std = (mv, axis=null, ddof=0) => {
-	const variance = GV.var(mv, axis, ddof);
-	if(mv.type === 'Vector' || axis === null) {
-		return Math.sqrt(variance);
-	} else {
-		return new GV.Vector(variance.values.map(v => Math.sqrt(v)));
-	}
+    const variance = GV.var(mv, axis, ddof);
+    if(mv.type === 'Vector' || axis === null) {
+        return Math.sqrt(variance);
+    } else if(mv.type === 'Matrix') {
+        if(axis === 0 || axis === 1) {
+            return new GV.Vector(variance.values.map(v => Math.sqrt(v)));
+        }
+    }
+    return Math.sqrt(variance);
 }
 
 // Minimum value in a vector or matrix
@@ -2518,5 +2584,139 @@ GV.inv = (m) => {
     });
 };
 
+// Matrix-Vector Operations
+GV.addMatrixVector = (m, v, inplace=false) => {
+    if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
+        console.error('Invalid inputs to addMatrixVector:', { m, v });
+        return null;
+    }
+    
+    if (m.length !== v.length) {
+        console.error('Matrix rows must match vector length for addition');
+        return null;
+    }
+    
+    if(inplace) {
+        for(let i = 0; i < m.length; i++) {
+            for(let j = 0; j < m[0].length; j++) {
+                m[i][j] += v[i];
+            }
+        }
+        return;
+    }
+
+    let newM = [];
+    for(let i = 0; i < m.length; i++) {
+        newM.push([]);
+        for(let j = 0; j < m[0].length; j++) {
+            newM[i].push(m[i][j] + v[i]);
+        }
+    }
+    return new GV.Matrix(newM);
+}
+
+GV.subtractMatrixVector = (m, v, inplace=false) => {
+    if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
+        console.error('Invalid inputs to subtractMatrixVector:', { m, v });
+        return null;
+    }
+    
+    const rows = m.length;
+    const cols = m[0].length;
+    
+    if (v.length !== cols) {
+        console.error('Vector length must match matrix columns for column-wise subtraction');
+        return null;
+    }
+    
+    if(inplace) {
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < cols; j++) {
+                m[i][j] -= v[j];  // Subtract from each column
+            }
+        }
+        return m;
+    }
+
+    let newM = [];
+    for(let i = 0; i < rows; i++) {
+        newM.push([]);
+        for(let j = 0; j < cols; j++) {
+            newM[i].push(m[i][j] - v[j]);  // Subtract from each column
+        }
+    }
+    return new GV.Matrix(newM);
+}
+
+GV.multiplyMatrixVector = (m, v, inplace=false) => {
+    if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
+        console.error('Invalid inputs to multiplyMatrixVector:', { m, v });
+        return null;
+    }
+    
+    if (m.length !== v.length) {
+        console.error('Matrix rows must match vector length for multiplication');
+        return null;
+    }
+    
+    if(inplace) {
+        for(let i = 0; i < m.length; i++) {
+            for(let j = 0; j < m[0].length; j++) {
+                m[i][j] *= v[i];
+            }
+        }
+        return;
+    }
+
+    let newM = [];
+    for(let i = 0; i < m.length; i++) {
+        newM.push([]);
+        for(let j = 0; j < m[0].length; j++) {
+            newM[i].push(m[i][j] * v[i]);
+        }
+    }
+    return new GV.Matrix(newM);
+}
+
+GV.divideMatrixVector = (m, v, inplace=false) => {
+    if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
+        console.error('Invalid inputs to divideMatrixVector:', { m, v });
+        return null;
+    }
+    
+    const rows = m.length;
+    const cols = m[0].length;
+    
+    if (v.length !== cols) {
+        console.error('Vector length must match matrix columns for column-wise division');
+        return null;
+    }
+    
+    // Check for division by zero
+    for(let i = 0; i < v.length; i++) {
+        if(v[i] === 0) {
+            console.error('Division by zero detected in vector');
+            return null;
+        }
+    }
+    
+    if(inplace) {
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < cols; j++) {
+                m[i][j] /= v[j];  // Divide each column
+            }
+        }
+        return m;
+    }
+
+    let newM = [];
+    for(let i = 0; i < rows; i++) {
+        newM.push([]);
+        for(let j = 0; j < cols; j++) {
+            newM[i].push(m[i][j] / v[j]);  // Divide each column
+        }
+    }
+    return new GV.Matrix(newM);
+}
 
 export default GV;

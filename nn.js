@@ -985,7 +985,7 @@ NN.Model = function(inputDim, lossFunction) {
 			let batchMetrics = {};
 
 			let indices = Array.from(Array(xTrain.length).keys());
-			GV.randomPermutation(indices);
+			GV.randomPermutation(new GV.Vector(indices)).values;
 			let [permX, permY] = [GV.fromIndices(xTrain, indices), GV.fromIndices(yTrain, indices)];
 
 			// Batch training

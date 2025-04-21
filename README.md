@@ -12,7 +12,7 @@ Dulvit er einfaldur og þæginlegur en á sama tíma hægvirkur og umfangslítil
 ## 2. Dæmi um síður sem nota pakkann
 <a href="https://rl-mylla.netlify.app/">https://rl-mylla.netlify.app/</a> (*ósigrandi líkan sem spilar leikinn Myllu*)
 
-<a href="https://erumferd.is">https://erumferd.is</a> (Spálíkan sem spáir fyrir um umferð)
+<a href="https://erumferd.is">https://erumferd.is</a> (*Spálíkan sem spáir fyrir um umferð*)
 
 ## 3. Nánari skjölun
 Nánari skjölun síðar.

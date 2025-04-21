@@ -1,20 +1,20 @@
 // Set chart constants for a modern look
 JSGrof.CHART_CONSTANTS.BG_COLOR = null;
-JSGrof.CHART_CONSTANTS.STROKE_COLOR = '#2c3e50';
+JSGrof.CHART_CONSTANTS.STROKE_COLOR = '#a0a0a0';
 JSGrof.CHART_CONSTANTS.DATA_COLORS = [
-    '#3498db',  // Blue
-    '#e74c3c',  // Red
-    '#2ecc71',  // Green
-    '#f1c40f',  // Yellow
-    '#9b59b6',  // Purple
-    '#1abc9c',  // Turquoise
-    '#e67e22'   // Orange
+    '#4dabf7',  // Light Blue
+    '#ff6b6b',  // Light Red
+    '#51cf66',  // Light Green
+    '#ffd43b',  // Light Yellow
+    '#cc5de8',  // Light Purple
+    '#20c997',  // Light Turquoise
+    '#ff922b'   // Light Orange
 ];
 JSGrof.CHART_CONSTANTS.FONT_SIZE = 12;
 JSGrof.CHART_CONSTANTS.LINE_WIDTH = 2;
 JSGrof.CHART_CONSTANTS.TOOLTIP_PADDING = 8;
 JSGrof.CHART_CONSTANTS.TOOLTIP_BORDER_RADIUS = 4;
-JSGrof.CHART_CONSTANTS.TOOLTIP_SHADOW = 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))';
+JSGrof.CHART_CONSTANTS.TOOLTIP_SHADOW = 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))';
 JSGrof.CHART_CONSTANTS.ANIMATION_DURATION = 200;
 JSGrof.CHART_CONSTANTS.HOVER_EFFECT = true;
 JSGrof.CHART_CONSTANTS.POINT_RADIUS = 4;
@@ -79,12 +79,14 @@ const updateDashboardMetrics = (state, metrics) => {
             hoverEffect: true,
             tooltipPadding: 8,
             tooltipBorderRadius: 4,
-            tooltipShadow: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))',
+            tooltipShadow: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))',
             animationDuration: 200,
             pointRadius: 4,
             pointHoverRadius: 6,
             liveUpdate: true,
-            updateInterval: 100
+            updateInterval: 100,
+            textColor: '#e0e0e0',
+            gridColor: '#333333'
         });
     } else {
         lossChart.updateData({
@@ -113,12 +115,14 @@ const updateDashboardMetrics = (state, metrics) => {
             interactivityPrecisionX: 2,
             interactivityPrecisionY: 2,
             tooltipBorderRadius: 4,
-            tooltipShadow: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))',
+            tooltipShadow: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))',
             animationDuration: 200,
             pointRadius: 4,
             pointHoverRadius: 6,
             liveUpdate: true,
-            updateInterval: 100
+            updateInterval: 100,
+            textColor: '#e0e0e0',
+            gridColor: '#333333'
         });
     } else {
         accuracyChart.updateData({
@@ -146,12 +150,14 @@ const updateDashboardMetrics = (state, metrics) => {
             hoverEffect: true,
             tooltipPadding: 8,
             tooltipBorderRadius: 4,
-            tooltipShadow: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))',
+            tooltipShadow: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))',
             animationDuration: 200,
             pointRadius: 4,
             pointHoverRadius: 6,
             liveUpdate: true,
-            updateInterval: 100
+            updateInterval: 100,
+            textColor: '#e0e0e0',
+            gridColor: '#333333'
         });
     } else {
         precisionChart.updateData({
