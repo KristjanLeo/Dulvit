@@ -1,0 +1,28 @@
+{
+  "name": "dulvit",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "homepage": "https://github.com/KristjanLeo/Dulvit#readme",
+  "bugs": {
+    "url": "https://github.com/KristjanLeo/Dulvit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KristjanLeo/Dulvit.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "main": "grof.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}
