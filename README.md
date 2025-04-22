@@ -114,5 +114,5 @@ to this project.**
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ### Example Websites Using Dulvit
-- [https://rl-mylla.netlify.app/](https://rl-mylla.netlify.app/) (*An AI model that plays the game of Nine Men's Morris*)
+- [https://rl-mylla.netlify.app/](https://rl-mylla.netlify.app/) (*An AI model that plays the game of Tic Tac Toe*)
 - [https://erumferd.is](https://erumferd.is) (*A prediction model for traffic forecasting*)
