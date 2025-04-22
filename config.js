@@ -1,5 +1,10 @@
 import GV from './gv.js';
-import NN from './nn.js';
+import {
+    Model,
+    Layers,
+    Loss,
+    Activations
+} from './nn/nn.js';
 
 /**
  * Configuration file for model and dataset settings
@@ -33,12 +38,12 @@ export function generateDataset() {
 */
 export function createModel() {
 
-    const model = new NN.Model(1, new NN.SquareLoss());
-    model.addLayer(new NN.Dense(10, 'tanh'));
-    model.addLayer(new NN.Dense(10, 'tanh'));
-    model.addLayer(new NN.Dense(10, 'tanh'));
-    model.addLayer(new NN.Dense(10, 'tanh'));
-    model.addLayer(new NN.Dense(1));
+    const model = new Model(1, new Loss.SquareLoss());
+    model.addLayer(new Layers.Dense(10, 'tanh'));
+    model.addLayer(new Layers.Dense(10, 'tanh'));
+    model.addLayer(new Layers.Dense(10, 'tanh'));
+    model.addLayer(new Layers.Dense(10, 'tanh'));
+    model.addLayer(new Layers.Dense(1));
     
     return model;
 }
@@ -56,7 +61,7 @@ export function getTrainingConfig() {
         lr: 0.01,
         lrDecay: 0.1,
         lrSchedule: 'decay',
-        metrics: ['loss', 'accuracy', 'precision'],
+        metrics: ['loss', 'accuracy', 'precision', 'mse', 'r2'],
         checkpointFrequency: 10,
         momentum: 0.8,
         verbose: false,

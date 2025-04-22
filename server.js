@@ -32,31 +32,42 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('Client connected');
   
+  let currentModel = null;
+  let isTraining = false;
+  let isPaused = false;
+  
   // Handle training request
-  socket.on('startTraining', (data) => {
-    console.log('Starting training');
+  socket.on('startTraining', (config) => {
+    if (isTraining) return;
+    
+    console.log('Starting training with config:', config);
+    isTraining = true;
     
     // Generate dataset using the config function
     const { dataset, validationDataset } = generateDataset();
 
-
     // Create model using the config function
-    const model = createModel();
+    currentModel = createModel(config);
+
+    // Send model architecture to client
+    socket.emit('modelArchitecture', currentModel.getArchitecture());
 
     // Prepare the data for training using the config function
     const { X, Y, XValidation, YValidation } = prepareData(dataset, validationDataset);
 
     // Get training configuration
-    const trainingConfig = getTrainingConfig();
+    const trainingConfig = getTrainingConfig(config);
 
     // Train the model
-    model.train(
+    currentModel.train(
       X, 
       Y,
       {
         ...trainingConfig,
         callbacks: {
           onEpochEnd: (state, metrics) => {
+            if (isPaused) return;
+            
             // Send training metrics to client
             socket.emit('trainingUpdate', {
               state: {
@@ -64,9 +75,14 @@ io.on('connection', (socket) => {
                 startTime: state.startTime
               },
               metrics: {
-                ...metrics,
-                trainingTime: (Date.now() - state.startTime) / 1000,
-                validationLoss: metrics.valLoss
+                loss: metrics.loss,
+                valLoss: metrics.valLoss,
+                accuracy: metrics.metrics.accuracy,
+                precision: metrics.metrics.precision,
+                mse: metrics.metrics.mse,
+                r2: metrics.metrics.r2,
+                learningRate: metrics.learningRate,
+                trainingTime: (Date.now() - state.startTime) / 1000
               }
             });
           }
@@ -74,11 +90,47 @@ io.on('connection', (socket) => {
         xValidation: XValidation,
         yValidation: YValidation
       }
-    )
+    );
+  });
+  
+  // Handle pause training
+  socket.on('pauseTraining', () => {
+    if (isTraining && !isPaused) {
+      isPaused = true;
+      if (currentModel) {
+        currentModel.pauseTraining();
+      }
+    }
+  });
+  
+  // Handle resume training
+  socket.on('resumeTraining', () => {
+    if (isTraining && isPaused) {
+      isPaused = false;
+      if (currentModel) {
+        currentModel.resumeTraining();
+      }
+    }
+  });
+  
+  // Handle stop training
+  socket.on('stopTraining', () => {
+    if (isTraining) {
+      isTraining = false;
+      isPaused = false;
+      if (currentModel) {
+        currentModel.stopTraining();
+        currentModel = null;
+      }
+    }
   });
   
   socket.on('disconnect', () => {
     console.log('Client disconnected');
+    if (currentModel) {
+      currentModel.stopTraining();
+      currentModel = null;
+    }
   });
 });
 

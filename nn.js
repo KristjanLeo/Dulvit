@@ -50,6 +50,18 @@ NN.LayerProto = {
 	},
 	setWeights(weights) {
 		this.W = weights;
+	},
+	getMetadata() {
+		return {
+			type: this.constructor.name,
+			name: this.name,
+			units: this.size,
+			activation: this.activation ? this.activation.constructor.name : null,
+			params: this.getLayerParams()
+		};
+	},
+	getLayerParams() {
+		return {};
 	}
 }
 NN.Dense = function(size, activation) {
@@ -80,6 +92,7 @@ NN.Dense = function(size, activation) {
 	}
 
 	this.size = size;
+	this.name = 'Dense';
 
 	this.f = (x) => {
 		
@@ -127,6 +140,16 @@ NN.Dense = function(size, activation) {
 	this.getSize = () => {
 		return this.size;
 	}
+
+	this.getLayerParams = () => {
+		return {
+			units: this.size,
+			activation: this.activation ? this.activation.constructor.name : null,
+			hasBias: true,
+			kernelInitializer: 'he',
+			weightShape: this.W ? this.W.shape : null
+		};
+	}
 }
 Object.assign(NN.Dense.prototype, NN.LayerProto);
 
@@ -134,6 +157,8 @@ NN.Dropout = function(rate = 0.5) {
 	this.rate = rate;
 	this.mask = null;
 	this.isTraining = true;
+
+	this.name = 'Dropout';
 
 	this.f = (x) => {
 		if (this.isTraining) {
@@ -154,6 +179,14 @@ NN.Dropout = function(rate = 0.5) {
 	this.getSize = () => {
 		return this.inputDim;
 	}
+
+	this.getLayerParams = () => {
+		return {
+			rate: this.rate,
+			noiseShape: null,
+			seed: null
+		};
+	}
 }
 Object.assign(NN.Dropout.prototype, NN.LayerProto);
 
@@ -165,6 +198,7 @@ NN.Conv2D = function(filters, kernelSize, stride = 1, padding = 'same') {
 	this.padding = padding;
 	this.W = null;
 	this.b = null;
+	this.name = 'Conv2D';
 
 	this.f = (x) => {
 		if (this.W === null) this.setInputDim(x.shape);
@@ -229,6 +263,20 @@ NN.Conv2D = function(filters, kernelSize, stride = 1, padding = 'same') {
 		for (let i = 0; i < this.b.length; i++) {
 			this.b[i] -= lr * dW.bias[i];
 		}
+	}
+
+	this.getLayerParams = () => {
+		return {
+			filters: this.filters,
+			kernelSize: this.kernelSize,
+			stride: this.stride,
+			padding: this.padding,
+			activation: null,
+			useBias: true,
+			kernelInitializer: 'he',
+			biasInitializer: 'zeros',
+			kernelShape: this.W ? this.W.shape : null
+		};
 	}
 }
 Object.assign(NN.Conv2D.prototype, NN.LayerProto);
@@ -437,6 +485,12 @@ NN.Swish = function() {
 		
 		return [f, dg];
 	}
+
+	this.getActivationParams = () => {
+		return {
+			beta: 1.0
+		};
+	}
 }
 Object.assign(NN.Swish.prototype, NN.activationProto);
 NN.Sigmoid = function() {
@@ -463,6 +517,12 @@ NN.LeakyReLU = function(alpha = 0.01) {
 		let dg = mapMat(x, val => val > 0 ? 1 : this.alpha);
 		return [f, dg];
 	}
+
+	this.getActivationParams = () => {
+		return {
+			alpha: this.alpha
+		};
+	}
 }
 Object.assign(NN.LeakyReLU.prototype, NN.activationProto);
 
@@ -481,6 +541,12 @@ NN.ELU = function(alpha = 1.0) {
 		let f = mapMat(x, val => val > 0 ? val : this.alpha * (Math.exp(val) - 1));
 		let dg = mapMat(x, val => val > 0 ? 1 : this.alpha * Math.exp(val));
 		return [f, dg];
+	}
+
+	this.getActivationParams = () => {
+		return {
+			alpha: this.alpha
+		};
 	}
 }
 Object.assign(NN.ELU.prototype, NN.activationProto);
@@ -1149,9 +1215,29 @@ NN.Model = function(inputDim, lossFunction) {
 				let precision = this._computeMetric('precision', y, yPred);
 				let recall = this._computeMetric('recall', y, yPred);
 				return 2 * (precision * recall) / (precision + recall + 1e-7);
+			case 'mse':
+				// Mean Squared Error for regression
+				return GV.mean(GV.pow(GV.subtractMatrix(y, yPred.t), 2));
+			case 'r2':
+				// R-squared score for regression
+				const ssRes = GV.sum(GV.pow(GV.subtractMatrix(y, yPred.t), 2));
+				const yMean = new GV.Matrix(yPred.shape).fill(GV.mean(y));
+				const ssTot = GV.sum(GV.pow(GV.subtractMatrix(y, yMean.t), 2));
+				return 1 - (ssRes / (ssTot + 1e-7));
 			default:
 				return 0;
 		}
+	}
+
+	this.getArchitecture = () => {
+		return {
+			inputDim: this.inputDim,
+			layers: this.layers.map(layer => layer.getMetadata()),
+			lossFunction: {
+				type: this.lossFunction.constructor.name,
+				params: this.lossFunction.getActivationParams ? this.lossFunction.getActivationParams() : {}
+			}
+		};
 	}
 }
 

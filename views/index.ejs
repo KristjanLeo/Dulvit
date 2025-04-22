@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="dark">
     <head>
         <title>Dulvit Training Dashboard</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,60 +8,157 @@
         <link rel="stylesheet" href="/css/dashboard.css">
     </head>
     <body>
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="model-config">
+                <h3>Model Configuration</h3>
+                <div class="config-group">
+                    <label for="learning-rate">Learning Rate</label>
+                    <input type="number" id="learning-rate" value="0.001" step="0.0001">
+                </div>
+                <div class="config-group">
+                    <label for="batch-size">Batch Size</label>
+                    <input type="number" id="batch-size" value="32">
+                </div>
+                <div class="config-group">
+                    <label for="epochs">Number of Epochs</label>
+                    <input type="number" id="epochs" value="100">
+                </div>
+                <div class="config-group">
+                    <label for="optimizer">Optimizer</label>
+                    <select id="optimizer">
+                        <option value="adam">Adam</option>
+                        <option value="sgd">SGD</option>
+                        <option value="rmsprop">RMSprop</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <main>
             <div class="dashboard">
                 <div class="dashboard-header">
-                    <h1>Dulvit Training Dashboard</h1>
+                    <div class="header-left">
+                        <button class="theme-toggle" id="theme-toggle">
+                            <span>Light</span>
+                        </button>
+                        <h1>Dulvit Training Dashboard</h1>
+                    </div>
+                    <div class="header-right">
+                        <div class="training-controls">
+                            <button class="btn btn-primary" id="start-training">
+                                <span class="btn-icon">▶</span>
+                                <span>Start</span>
+                            </button>
+                            <button class="btn btn-secondary" id="pause-training" disabled>
+                                <span class="btn-icon">⏸</span>
+                                <span>Pause</span>
+                            </button>
+                            <button class="btn btn-secondary" id="stop-training" disabled>
+                                <span class="btn-icon">⏹</span>
+                                <span>Stop</span>
+                            </button>
+                            <button class="btn btn-secondary" id="export-results">
+                                <span class="btn-icon">📥</span>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                        <button class="btn btn-icon-only" id="toggle-sidebar">
+                            <span>☰</span>
+                        </button>
+                    </div>
                 </div>
+
                 <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h2>Training Progress</h2>
-                        <div class="metrics-grid">
-                            <div class="metric-card">
-                                <div class="metric-label">Current Loss</div>
-                                <div class="metric-value" id="current-loss">-</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">Validation Loss</div>
-                                <div class="metric-value" id="current-validation-loss">-</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">Best Loss</div>
-                                <div class="metric-value" id="best-loss">-</div>
-                            </div>
+                    <!-- Loss Chart -->
+                    <div class="dashboard-card full-width">
+                        <h2>Training Loss</h2>
+                        <div class="metrics-charts">
+                            <div class="metric-chart" id="loss-chart"></div>
                         </div>
                     </div>
-                    <div class="dashboard-card">
-                        <h2>Model Metrics</h2>
-                        <div class="metrics-grid">
-                            <div class="metric-card">
-                                <div class="metric-label">Accuracy</div>
-                                <div class="metric-value" id="current-accuracy">-</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">Precision</div>
-                                <div class="metric-value" id="current-precision">-</div>
-                            </div>
+
+                    <div class="dashboard-card full-width">
+                        <h2>Additional Metrics</h2>
+                        <div class="metrics-charts">
+                            <div class="metric-chart" id="accuracy-chart"></div>
+                            <div class="metric-chart" id="precision-chart"></div>
                         </div>
                     </div>
+
                     <div class="dashboard-card full-width">
                         <h2>Training Info</h2>
                         <div class="training-info">
-                            <span>Epoch: <span id="current-epoch">0</span></span>
-                            <span>Current LR: <span id="current-lr">-</span></span>
-                            <span>Time: <span id="training-time">0s</span></span>
+                            <div class="info-item">
+                                <span class="info-label">Epoch:</span>
+                                <span class="info-value" id="current-epoch">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Current LR:</span>
+                                <span class="info-value" id="current-lr">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Time:</span>
+                                <span class="info-value" id="training-time">0s</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="dashboard-card full-width">
-                        <div class="metrics-charts">
-                            <div id="loss-chart"></div>
-                            <div id="accuracy-chart"></div>
-                            <div id="precision-chart"></div>
+
+                    <div class="dashboard-card">
+                        <h2>Training Progress</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">Current Loss</div>
+                                <div class="metric-value" id="current-loss">-</div>
+                                <span class="tooltip-text">Current training loss value</span>
+                            </div>
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">Validation Loss</div>
+                                <div class="metric-value" id="current-validation-loss">-</div>
+                                <span class="tooltip-text">Current validation loss value</span>
+                            </div>
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">Best Loss</div>
+                                <div class="metric-value" id="best-loss">-</div>
+                                <span class="tooltip-text">Best loss achieved during training</span>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h2>Model Metrics</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">Accuracy</div>
+                                <div class="metric-value" id="current-accuracy">-</div>
+                                <span class="tooltip-text">Model accuracy on validation set</span>
+                            </div>
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">Precision</div>
+                                <div class="metric-value" id="current-precision">-</div>
+                                <span class="tooltip-text">Model precision on validation set</span>
+                            </div>
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">MSE</div>
+                                <div class="metric-value" id="current-mse">-</div>
+                                <span class="tooltip-text">Mean Squared Error</span>
+                            </div>
+                            <div class="metric-card tooltip">
+                                <div class="metric-label">R²</div>
+                                <div class="metric-value" id="current-r2">-</div>
+                                <span class="tooltip-text">R-squared score</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card full-width">
+                        <h2>Model Architecture</h2>
+                        <div id="model-architecture" class="architecture-visualization"></div>
                     </div>
                 </div>
             </div>
         </main>
+
         <script src="/socket.io/socket.io.js"></script>
         <script src="/js/grof.js"></script>
         <script src="/js/main.js"></script>
