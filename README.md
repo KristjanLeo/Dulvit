@@ -24,10 +24,7 @@ A JavaScript-based neural network library that provides a flexible and efficient
 
 ## Installation
 
-Coming soon:
-```bash
-npm install dulvit
-```
+For now you can simply clone the repository to install the project.
 
 ## Quick Start
 
