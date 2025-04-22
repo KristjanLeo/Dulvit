@@ -1,3 +1,11 @@
+/**
+ * Neural Network Model Implementation
+ * This module provides a flexible neural network model implementation with support for
+ * various layer types, loss functions, and training configurations.
+ * 
+ * @module nn/model
+ */
+
 import GV from '../gv.js';
 import * as Layers from './layers.js';
 import * as Loss from './loss.js';
@@ -27,12 +35,31 @@ const {
     concat
 } = GV;
 
+/**
+ * Neural Network Model class that supports various layer types and training configurations.
+ * 
+ * @class Model
+ */
 export class Model {
+    /**
+     * Creates a new neural network model.
+     * 
+     * @param {number} inputDim - The dimension of the input data
+     * @param {Object} lossFunction - The loss function to use for training
+     */
     constructor(inputDim, lossFunction) {
         this.inputDim = inputDim;
         this.layers = [];
         this.lossFunction = lossFunction;
 
+        /**
+         * Computes the forward pass through all layers and returns intermediate values.
+         * 
+         * @private
+         * @param {Matrix} x - Input data
+         * @param {Matrix} y - Target data
+         * @returns {Array} Array containing computed layers and their derivatives
+         */
         this._computeLayers = (x, y) => {
             let computedLayers = [];
             let computedDerivatives = [];
@@ -166,6 +193,13 @@ export class Model {
             return [computedLayers, computedDerivatives];
         }
 
+        /**
+         * Computes the loss between predicted and target values
+         * @private
+         * @param {Matrix} y - Target values
+         * @param {Matrix} yPred - Predicted values
+         * @returns {number} The computed loss value
+         */
         this._computeLoss = (y, yPred) => {
             // Ensure inputs are Matrix objects
             if (!y.type || y.type !== 'Matrix') {
@@ -178,6 +212,17 @@ export class Model {
             return this.lossFunction.getLoss(y, yPred.t);
         }
 
+        /**
+         * Updates the weights of all layers using gradient descent
+         * @private
+         * @param {number} lr - Learning rate
+         * @param {Array} computedLayers - Array of computed layer outputs
+         * @param {Array} computedDerivatives - Array of computed layer derivatives
+         * @param {number} batchSize - Size of the current batch
+         * @param {number} momentum - Momentum coefficient
+         * @param {number} weightDecay - L2 regularization coefficient
+         * @param {Array} momentumBuffers - Buffers for momentum updates
+         */
         this._updateWeights = (lr, computedLayers, computedDerivatives, batchSize, momentum, weightDecay, momentumBuffers) => {
             let revL = this.layers.slice().reverse();
             let revComputedD = computedDerivatives.slice().reverse();
@@ -221,6 +266,10 @@ export class Model {
             }
         }
 
+        /**
+         * Adds a new layer to the neural network
+         * @param {Object} layer - The layer to add
+         */
         this.addLayer = (layer) => {
             if(this.layers.length > 0) {
                 layer.setInputDim(this.layers[this.layers.length-1].getSize());
@@ -230,6 +279,12 @@ export class Model {
             this.layers.push(layer);
         }
 
+        /**
+         * Computes the loss for a given input and target
+         * @param {Matrix} x - Input data
+         * @param {Matrix} y - Target data
+         * @returns {number} The computed loss value
+         */
         this.getLoss = (x, y) => {
             // Set model to evaluation mode
             this.setTrainingMode(false);
@@ -255,6 +310,11 @@ export class Model {
             return totalLoss / x.length;
         }
 
+        /**
+         * Makes predictions for the given input data
+         * @param {Matrix} x - Input data
+         * @returns {Matrix} Predicted values
+         */
         this.predict = (x) => {
             let layerIn = [];
             for(let i = 0; i < x.rows.length; i++) {
@@ -284,6 +344,10 @@ export class Model {
             return this.lossFunction.ff(layerIn.t);
         }
 
+        /**
+         * Sets the training mode for all layers
+         * @param {boolean} isTraining - Whether the model is in training mode
+         */
         this.setTrainingMode = (isTraining) => {
             for (let layer of this.layers) {
                 if (layer.isTraining !== undefined) {
@@ -292,6 +356,10 @@ export class Model {
             }
         }
 
+        /**
+         * Saves the model state to a JSON string
+         * @returns {string} JSON string containing the model state
+         */
         this.save = () => {
             let modelState = {
                 inputDim: this.inputDim,
@@ -309,6 +377,10 @@ export class Model {
             return JSON.stringify(modelState);
         }
 
+        /**
+         * Loads a model state from a JSON string
+         * @param {string} modelState - JSON string containing the model state
+         */
         this.load = (modelState) => {
             let state = JSON.parse(modelState);
             this.inputDim = state.inputDim;
@@ -355,6 +427,31 @@ export class Model {
             }
         }
 
+        /**
+         * Trains the model on the given data
+         * @param {Matrix} xTrain - Training input data
+         * @param {Matrix} yTrain - Training target data
+         * @param {Object} options - Training options
+         * @param {Matrix} [options.xValidation] - Validation input data
+         * @param {Matrix} [options.yValidation] - Validation target data
+         * @param {number} [options.maxValidationLossIncreaseCount=1] - Maximum number of times validation loss can increase
+         * @param {number} [options.lr=0.1] - Learning rate
+         * @param {number} [options.lrDecay=0.9999] - Learning rate decay factor
+         * @param {number} [options.batchSize=8] - Batch size for training
+         * @param {number} [options.maxEpochs=10] - Maximum number of training epochs
+         * @param {number} [options.verbose=1] - Verbosity level
+         * @param {number} [options.earlyStoppingPatience=5] - Number of epochs to wait before early stopping
+         * @param {number} [options.earlyStoppingMinDelta=0.001] - Minimum change in validation loss to qualify as an improvement
+         * @param {string} [options.lrSchedule='constant'] - Learning rate schedule type
+         * @param {Object} [options.callbacks={}] - Training callbacks
+         * @param {Array} [options.metrics=['loss']] - Metrics to track during training
+         * @param {number} [options.checkpointFrequency=0] - Frequency of model checkpointing
+         * @param {string} [options.checkpointDir='./checkpoints'] - Directory for model checkpoints
+         * @param {number} [options.gradientClipping=0] - Maximum gradient norm
+         * @param {number} [options.momentum=0.9] - Momentum coefficient
+         * @param {number} [options.weightDecay=0] - L2 regularization coefficient
+         * @returns {Promise<Object>} Training history and metrics
+         */
         this.train = (
             xTrain,
             yTrain,
@@ -664,7 +761,14 @@ export class Model {
             return startTraining();
         }
 
-        // Helper method to compute additional metrics
+        /**
+         * Computes additional metrics during training
+         * @private
+         * @param {string} metric - Name of the metric to compute
+         * @param {Matrix} y - Target values
+         * @param {Matrix} yPred - Predicted values
+         * @returns {number} The computed metric value
+         */
         this._computeMetric = (metric, y, yPred) => {
             // Convert inputs to GV objects if they aren't already
             if (!y.type) y = new GV.Matrix(y);
@@ -699,6 +803,10 @@ export class Model {
             }
         }
 
+        /**
+         * Returns the model architecture information
+         * @returns {Object} Model architecture details
+         */
         this.getArchitecture = () => {
             return {
                 inputDim: this.inputDim,

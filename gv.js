@@ -1,3 +1,12 @@
+/**
+ * GV (General Vector) Library
+ * A comprehensive linear algebra and mathematical operations library for JavaScript.
+ * Provides vector and matrix operations, mathematical functions, and utility methods
+ * for neural network computations.
+ * 
+ * @module gv
+ */
+
 import { Worker } from 'worker_threads';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -16,25 +25,45 @@ try {
     }
 }
 
+/**
+ * Main GV namespace containing all vector and matrix operations
+ * @namespace GV
+ */
 const GV = {};
 
-
-// ******************* Vector *********************
+/**
+ * Vector prototype containing methods for vector operations
+ * @namespace GV.VectorPrototype
+ */
 GV.VectorPrototype = {
+	/**
+	 * Iterator implementation for Vector objects
+	 * @generator
+	 * @yields {number} The next value in the vector
+	 */
 	[Symbol.iterator]: function* () {
 		for(let i = 0; i < this.values.length; i++) {
 			yield this.values[i];
 		}
 	},
 	
-	// Push a value to the end of the vector
+	/**
+	 * Pushes a value to the end of the vector
+	 * @param {number} value - The value to push
+	 * @returns {number} The new length of the vector
+	 */
 	push: function(value) {
 		this.values.push(value);
 		this[this.values.length - 1] = value; // Update proxy properties
 		return this.values.length;
 	},
 	
-	// Map a function over all elements
+	/**
+	 * Maps a function over all elements of the vector
+	 * @param {Function} f - The function to apply to each element
+	 * @param {boolean} [inplace=false] - Whether to modify the vector in place
+	 * @returns {Vector} A new vector with the mapped values, or the modified vector if inplace
+	 */
 	map: function(f, inplace=false) {
 		if(inplace) {
 			for(let i = 0; i < this.values.length; i++) {
@@ -46,7 +75,11 @@ GV.VectorPrototype = {
 		return new GV.Vector(this.values.map(f));
 	},
 	
-	// Fill all elements with a value
+	/**
+	 * Fills all elements of the vector with a specified value
+	 * @param {number} value - The value to fill the vector with
+	 * @returns {Vector} The modified vector
+	 */
 	fill: function(value) {
 		for(let i = 0; i < this.values.length; i++) {
 			this.values[i] = value;
@@ -185,6 +218,12 @@ GV.VectorPrototype = {
 		return new GV.Vector(squareDiffs).mean();
 	}
 }
+
+/**
+ * Vector constructor
+ * @param {Array|number} values - The values to initialize the vector with
+ * @returns {Vector} A new Vector object
+ */
 GV.Vector = function(values) {
 	
 	if(values.constructor.name !== 'Array') {
@@ -262,7 +301,10 @@ Object.defineProperties(GV.Vector.prototype, {
 
 
 
-// ******************* Matrix *********************
+/**
+ * Matrix prototype containing methods for matrix operations
+ * @namespace GV.MatrixPrototype
+ */
 GV.MatrixPrototype = {
 	[Symbol.iterator]: function* () {
 		for(let i = 0; i < this.rows.length; i++) {
@@ -445,7 +487,7 @@ GV.MatrixPrototype = {
 	},
 	
 	// Get the variance
-	var: function() {
+	var: function(ddof = 0) {
 		const avg = this.mean();
 		const squareDiffs = this.rows.flat().map(value => {
 			const diff = value - avg;
@@ -542,6 +584,12 @@ GV.MatrixPrototype = {
 		return true;
 	}
 }
+
+/**
+ * Matrix constructor
+ * @param {Array|number} rows - The rows to initialize the matrix with
+ * @returns {Matrix} A new Matrix object
+ */
 GV.Matrix = function(rows) {
 
 	// Check if this is a shape specification
@@ -641,7 +689,12 @@ Object.defineProperties(GV.Matrix.prototype, {
 
 // ******************* Static *********************
 
-/* (n x k) * (k x m) = (n x m) */
+/**
+ * Multiplies two matrices
+ * @param {Matrix} a - The first matrix
+ * @param {Matrix} b - The second matrix
+ * @returns {Matrix} The product of the two matrices
+ */
 GV._matMult = (a, b) => {
     if (!a || !b || a.length === 0 || b.length === 0) {
         console.error('Invalid matrices for matrix multiplication:', { a, b });
@@ -659,16 +712,6 @@ GV._matMult = (a, b) => {
             { aShape: [a.length, a[0]?.length], bShape: [b.length, b[0]?.length] });
         return new GV.Matrix(Array(a.length).fill([]));
     }
-
-    // // Try GPU acceleration first if available
-    // if (window.GPU && a.length * b[0].length >= 100) {
-    //     try {
-    //         const result = GPU.multiply(a, b);
-    //         if (result) return result;
-    //     } catch (e) {
-    //         console.warn('GPU acceleration failed, falling back to CPU:', e);
-    //     }
-    // }
 
     // Use synchronous version for small matrices
     if (a.length * b[0].length < 1000) {
@@ -741,6 +784,12 @@ GV._matMult = (a, b) => {
     return new GV.Matrix(c);
 };
 
+/**
+ * Dot product of two vectors
+ * @param {Vector} a - The first vector
+ * @param {Vector} b - The second vector
+ * @returns {number} The dot product of the two vectors
+ */
 GV.dot = (a, b) => {
 	if(a.type !== 'Vector' || b.type !== 'Vector') {
 		console.error('Items must be of type Vector.');
@@ -756,6 +805,11 @@ GV.dot = (a, b) => {
 	return sum;
 }
 
+/**
+ * Multiplies multiple matrices and vectors
+ * @param {...Matrix|Vector} args - The matrices and vectors to multiply
+ * @returns {Matrix|Vector} The result of the multiplication
+ */
 GV.mult = (...args) => {
 	
 	if(args.length === 0) return null;
@@ -784,6 +838,13 @@ GV.mult = (...args) => {
 	return m;
 }
 
+/**
+ * Subtracts two vectors
+ * @param {Vector} a - The first vector
+ * @param {Vector} b - The second vector
+ * @param {boolean} [inplace=false] - Whether to modify the first vector in place
+ * @returns {Vector} The result of the subtraction	
+ */
 GV.subtractVector = (a, b, inplace=false) => {
 
 	if(inplace) {
@@ -799,8 +860,14 @@ GV.subtractVector = (a, b, inplace=false) => {
 	return new GV.Vector(newV);
 }
 
+/**
+ * Multiplies two vectors element-wise
+ * @param {Vector} a - The first vector
+ * @param {Vector} b - The second vector
+ * @param {boolean} [inplace=false] - Whether to modify the first vector in place
+ * @returns {Vector} The result of the multiplication
+ */
 GV.multiplyVector = (a, b, inplace=false) => {
-
 	if(inplace) {
 		for(let i = 0; i < a.length; i++) {
 			a[i] *= b[i];
@@ -814,6 +881,13 @@ GV.multiplyVector = (a, b, inplace=false) => {
 	return new GV.Vector(newV);
 }
 
+/**
+ * Subtracts two matrices
+ * @param {Matrix} m1 - The first matrix
+ * @param {Matrix} m2 - The second matrix
+ * @param {boolean} [inplace=false] - Whether to modify the first matrix in place
+ * @returns {Matrix} The result of the subtraction	
+ */
 GV.subtractMatrix = (m1, m2, inplace=false) => {
 	// Check if inputs are valid
 	if (!m1 || !m2) {
@@ -882,6 +956,13 @@ GV.subtractMatrix = (m1, m2, inplace=false) => {
 	return new GV.Matrix(newM);
 }
 
+/**
+ * Adds two matrices
+ * @param {Matrix} m1 - The first matrix
+ * @param {Matrix} m2 - The second matrix
+ * @param {boolean} [inplace=false] - Whether to modify the first matrix in place
+ * @returns {Matrix} The result of the addition	
+ */
 GV.addMatrix = (m1, m2, inplace=false) => {
 	
 	if(inplace) {
@@ -904,6 +985,13 @@ GV.addMatrix = (m1, m2, inplace=false) => {
 	return new GV.Matrix(newM);
 }
 
+/**
+ * Multiplies two matrices
+ * @param {Matrix} m1 - The first matrix
+ * @param {Matrix} m2 - The second matrix
+ * @param {boolean} [inplace=false] - Whether to modify the first matrix in place
+ * @returns {Matrix} The result of the multiplication
+ */	
 GV.multiplyMatrix = (m1, m2, inplace=false) => {
 	
 	if(inplace) {
@@ -926,13 +1014,19 @@ GV.multiplyMatrix = (m1, m2, inplace=false) => {
 	return new GV.Matrix(newM);
 }
 
+/**
+ * Multiplies a matrix and a vector
+ * @param {Matrix} m - The matrix
+ * @param {Vector} v - The vector
+ * @param {boolean} [inplace=false] - Whether to modify the first matrix in place
+ * @returns {Matrix} The result of the multiplication
+ */	
 GV.multiplyMatrixVector = (m, v, inplace=false) => {
 	
 	if(inplace) {
 		for(let i = 0; i < m.length; i++) {
 			for(let j = 0; j < m[0].length; j++) {
 				m[i][j] *= v[i];
-				// No need to update m.rows[i][j] as the proxy will handle it
 			}
 		}
 		return;
@@ -948,6 +1042,13 @@ GV.multiplyMatrixVector = (m, v, inplace=false) => {
 	return new GV.Matrix(newM);
 }
 
+/**
+ * Maps a function over all elements of a matrix
+ * @param {Matrix} m - The matrix
+ * @param {Function} f - The function to apply to each element
+ * @param {boolean} [inplace=false] - Whether to modify the matrix in place
+ * @returns {Matrix} The result of the mapping
+ */	
 GV.mapMat = (m, f, inplace=false) => {
 	if (!m) {
 		console.error('Invalid input to mapMat function:', m);
@@ -986,6 +1087,13 @@ GV.mapMat = (m, f, inplace=false) => {
 	return new GV.Matrix(newM);
 }
 
+/**
+ * Maps a function over all elements of a vector
+ * @param {Vector} v - The vector
+ * @param {Function} f - The function to apply to each element
+ * @param {boolean} [inplace=false] - Whether to modify the vector in place
+ * @returns {Vector} The result of the mapping
+ */	
 GV.mapVec = (v, f, inplace=false) => {
 	if(inplace) {
 		const len = v.length;
@@ -1004,16 +1112,34 @@ GV.mapVec = (v, f, inplace=false) => {
 	return new GV.Vector(newV);
 }
 
+/**
+ * Exponentiates all elements of a matrix
+ * @param {Matrix} m - The matrix
+ * @param {boolean} [inplace=false] - Whether to modify the matrix in place
+ * @returns {Matrix} The result of the exponentiation
+ */		
 GV.expMat = (m, inplace=false) => {
 	if(inplace) { GV.mapMat(m, Math.exp, true); return; }
 	return GV.mapMat(m, Math.exp, false);
 }
 
+/**
+ * Exponentiates all elements of a vector
+ * @param {Vector} v - The vector
+ * @param {boolean} [inplace=false] - Whether to modify the vector in place
+ * @returns {Vector} The result of the exponentiation
+ */		
 GV.expVec = (v, inplace=false) => {
 	if(inplace) { GV.mapVec(v, Math.exp, true); return; }
 	return GV.mapVec(v, Math.exp, false);
 }
 
+/**
+ * Exponentiates all elements of a matrix or vector
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the exponentiation
+ */		
 GV.exp = (mv, inplace=false) => {
 	if(mv.type === 'Matrix') {
 		if(inplace) { GV.expMat(mv, true); return; }
@@ -1024,8 +1150,23 @@ GV.exp = (mv, inplace=false) => {
 	}
 }
 
-GV.sum = (mv, axis=null) => {
-	if(mv.type === 'Matrix') {
+/**
+ * Calculates the sum of all elements in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to sum
+ * @param {number|null} axis - The axis along which to sum (0 for columns, 1 for rows, null for global sum)
+ * @returns {number|Vector} The sum value(s)
+ */
+GV.sum = (mv, axis = null) => {
+	if(mv.type === 'Vector') {
+		if(axis !== null) {
+			throw new Error('Vector sum operation does not support axis parameter');
+		}
+		let sum = 0;
+		for(let i = 0; i < mv.values.length; i++) {
+			sum += mv.values[i];
+		}
+		return sum;
+	} else if(mv.type === 'Matrix') {
 		if(axis === null) {
 			// Use a single loop for better performance
 			let sum = 0;
@@ -1038,40 +1179,37 @@ GV.sum = (mv, axis=null) => {
 				}
 			}
 			return sum;
-		}
-
-		if(axis === 0) {
-			// Sum along columns (vertical sum)
+		} else if(axis === 0) {
+			// Pre-allocate result vector
 			const sums = new Array(mv[0].length).fill(0);
-			for(let j = 0; j < mv[0].length; j++) {
-				for(let i = 0; i < mv.length; i++) {
+			const rows = mv.length;
+			for(let i = 0; i < rows; i++) {
+				for(let j = 0; j < mv[0].length; j++) {
 					sums[j] += mv[i][j];
 				}
 			}
 			return new GV.Vector(sums);
-		}
-
-		if(axis === 1) {
-			// Sum along rows (horizontal sum)
+		} else if(axis === 1) {
+			// Pre-allocate result vector
 			const sums = new Array(mv.length).fill(0);
 			for(let i = 0; i < mv.length; i++) {
-				for(let j = 0; j < mv[0].length; j++) {
-					sums[i] += mv[i][j];
+				const row = mv[i];
+				for(let j = 0; j < row.length; j++) {
+					sums[i] += row[j];
 				}
 			}
 			return new GV.Vector(sums);
 		}
-	} else if(mv.type === 'Vector') {
-		// Use a single loop for better performance
-		let sum = 0;
-		const len = mv.length;
-		for(let i = 0; i < len; i++) {
-			sum += mv[i];
-		}
-		return sum;
 	}
 }
 
+/**
+ * Adds a value to all elements of a matrix or vector
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {number} value - The value to add
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the addition	
+ */
 GV.add = (mv, value, inplace=false) => {
 	if(mv.type === 'Matrix') {
 		if(inplace) { GV.mapMat(mv, (x) => x+value, true); return; }
@@ -1083,6 +1221,13 @@ GV.add = (mv, value, inplace=false) => {
 	}
 }
 
+/**
+ * Raises all elements of a matrix or vector to a power
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {number} pow - The power to raise the elements to
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the power operation
+ */	
 GV.pow = (mv, pow, inplace=false) => {
 	if(mv.type === 'Matrix') {
 		if(inplace) { GV.mapMat(mv, (x) => x**pow, true); return; }
@@ -1094,6 +1239,13 @@ GV.pow = (mv, pow, inplace=false) => {
 	}
 }
 
+/**
+ * Scales all elements of a matrix or vector by a given value
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {number} scale - The value to scale the elements by
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the scaling operation	
+ */
 GV.scale = (mv, scale, inplace=false) => {
 	// Check if mv is valid
 	if (!mv) {
@@ -1117,6 +1269,12 @@ GV.scale = (mv, scale, inplace=false) => {
 	}
 }
 
+/**
+ * Logs all elements of a matrix or vector
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the logarithm operation
+ */	
 GV.log = (mv, inplace=false) => {
 	if(mv.type === 'Matrix') {
 		if(inplace) { GV.mapMat(mv, (x) => Math.log(x), true); return; }
@@ -1128,6 +1286,12 @@ GV.log = (mv, inplace=false) => {
 	}
 }
 
+/**
+ * Returns the absolute value of all elements of a matrix or vector
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the absolute value operation
+ */		
 GV.abs = (mv, inplace=false) => {
 	if(mv.type === 'Matrix') {
 		if(inplace) { GV.mapMat(mv, (x) => Math.abs(x), true); return; }
@@ -1139,7 +1303,12 @@ GV.abs = (mv, inplace=false) => {
 	}
 }
 
-
+/**
+ * Returns one over all elements of a matrix or vector
+ * @param {Matrix|Vector} mv - The matrix or vector
+ * @param {boolean} [inplace=false] - Whether to modify the matrix or vector in place
+ * @returns {Matrix|Vector} The result of the operation
+ */	
 GV.oneOver = (mv, inplace=false) => {
 	if(mv.type === 'Matrix') {
 		if(inplace) { GV.mapMat(mv, (x) => 1/x, true); return; }
@@ -1151,6 +1320,11 @@ GV.oneOver = (mv, inplace=false) => {
 	}
 }
 
+/**
+ * Inverts a matrix
+ * @param {Matrix} m - The matrix to invert
+ * @returns {Matrix} The inverse of the matrix
+ */	
 GV.inverse = async (m) => {
 
 	let augmented = [];
@@ -1189,7 +1363,11 @@ GV.inverse = async (m) => {
 	return new GV.Matrix(ret);
 }
 
-
+/**
+ * Finds the index of the minimum value in a vector
+ * @param {Vector} mv - The vector to find the minimum value in
+ * @returns {number} The index of the minimum value
+ */	
 GV.argmin = (mv) => {
 	if(mv.type === 'Vector') {
 		let min = mv[0];
@@ -1204,6 +1382,12 @@ GV.argmin = (mv) => {
 	}
 }
 
+/**
+ * Finds the index of the maximum value in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to find the maximum value in
+ * @param {number|null} axis - The axis along which to find the maximum value (0 for columns, 1 for rows, null for global maximum)
+ * @returns {number|Vector} The index of the maximum value(s)
+ */	
 GV.argmax = (mv, axis=null) => {
 	if (!mv) {
 		console.error('GV.argmax: Input is undefined or null');
@@ -1274,6 +1458,12 @@ GV.argmax = (mv, axis=null) => {
 	return null;
 }
 
+/**
+ * Randomly permutes the elements of a vector or matrix
+ * @param {Vector|Matrix} v - The vector or matrix to permute
+ * @param {number|null} axis - The axis along which to permute (0 for rows, 1 for columns, null for all elements)
+ * @returns {Vector|Matrix} The permuted vector or matrix
+ */	
 GV.randomPermutation = (v, axis=null) => {
 	// Input validation
 	if (!v) {
@@ -1369,6 +1559,13 @@ GV.randomPermutation = (v, axis=null) => {
 	return null;
 }
 
+/**
+ * Creates a new matrix or vector from specified indices
+ * @param {Matrix|Vector} mv - The matrix or vector to extract elements from
+ * @param {Vector} indices - The indices of the elements to extract
+ * @param {number|null} axis - The axis along which to extract elements (0 for rows, 1 for columns, null for all elements)
+ * @returns {Matrix|Vector} The new matrix or vector with extracted elements	
+ */
 GV.fromIndices = (mv, indices, axis=null) => {
 
 	if(mv.type === 'Matrix') {
@@ -1405,8 +1602,18 @@ GV.fromIndices = (mv, indices, axis=null) => {
 	}
 }
 
+/**
+ * Creates a vector of numbers from 0 to n-1
+ * @param {number} n - The number of elements in the vector
+ * @returns {Vector} The vector of numbers from 0 to n-1
+ */	
 GV.toN = (n) => new GV.Vector(Array.from(Array(n).keys()));
 
+/**
+ * Creates a matrix or vector of zeros with the specified shape
+ * @param {...number} shape - The dimensions of the matrix or vector
+ * @returns {Matrix|Vector} The matrix or vector of zeros
+ */	
 GV.zeros = (...shape) => {
 
 	if(shape.length === 0) return new GV.Vector([]);
@@ -1420,6 +1627,11 @@ GV.zeros = (...shape) => {
 	return new GV.Matrix(m);
 }
 
+/**
+ * Creates a matrix or vector of ones with the specified shape
+ * @param {...number} shape - The dimensions of the matrix or vector
+ * @returns {Matrix|Vector} The matrix or vector of ones
+ */	
 GV.ones = (...shape) => {
 
 	if(shape.length === 0) return new GV.Vector([]);
@@ -1433,6 +1645,13 @@ GV.ones = (...shape) => {
 	return new GV.Matrix(m);
 }
 
+/**
+ * Scales all elements of a vector
+ * @param {Vector} v - The vector to scale
+ * @param {number} scale - The value to scale the elements by
+ * @param {boolean} [inplace=false] - Whether to modify the vector in place
+ * @returns {Vector} The scaled vector	
+ */	
 GV.scaleVector = (v, scale, inplace=false) => {
 	if(inplace) {
 		for(let i = 0; i < v.length; i++) {
@@ -1451,121 +1670,114 @@ GV.scaleVector = (v, scale, inplace=false) => {
 
 // ******************* Statistical Functions *********************
 
-// Mean of a vector or matrix
+/**
+ * Calculates the mean of elements in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to calculate mean for
+ * @param {number|null} axis - The axis along which to calculate mean (0 for columns, 1 for rows, null for global mean)
+ * @returns {number|Vector} The mean value(s)
+ */
 GV.mean = (mv, axis=null) => {
     if(mv.type === 'Vector') {
-        // Use a single loop for better performance
-        let sum = 0;
-        const len = mv.length;
-        for(let i = 0; i < len; i++) {
-            sum += mv[i];
-        }
-        return sum / len;
+        return mv.values.reduce((a, b) => a + b, 0) / mv.values.length;
     } else if(mv.type === 'Matrix') {
         if(axis === null) {
-            // Use a single loop for better performance
-            let sum = 0;
-            const rows = mv.length;
-            const cols = mv[0].length;
-            const size = rows * cols;
-            for(let i = 0; i < rows; i++) {
-                const row = mv[i];
-                for(let j = 0; j < cols; j++) {
-                    sum += row[j];
-                }
-            }
-            return sum / size;
+            return mv.rows.flat().reduce((a, b) => a + b, 0) / (mv.rows.length * mv.rows[0].length);
         } else if(axis === 0) {
-            // Column-wise mean
-            const cols = mv[0].length;
-            const rows = mv.length;
-            const means = new Array(cols);
-            for(let j = 0; j < cols; j++) {
-                let sum = 0;
-                for(let i = 0; i < rows; i++) {
-                    sum += mv[i][j];
+            const means = new Array(mv.rows[0].length).fill(0);
+            for(let i = 0; i < mv.rows.length; i++) {
+                for(let j = 0; j < mv.rows[0].length; j++) {
+                    means[j] += mv.rows[i][j];
                 }
-                means[j] = sum / rows;
             }
-            return new GV.Vector(means);
+            return new GV.Vector(means.map(m => m / mv.rows.length));
         } else if(axis === 1) {
-            // Row-wise mean
-            const rows = mv.length;
-            const cols = mv[0].length;
-            const means = new Array(rows);
-            for(let i = 0; i < rows; i++) {
-                let sum = 0;
-                for(let j = 0; j < cols; j++) {
-                    sum += mv[i][j];
+            const means = new Array(mv.rows.length).fill(0);
+            for(let i = 0; i < mv.rows.length; i++) {
+                for(let j = 0; j < mv.rows[0].length; j++) {
+                    means[i] += mv.rows[i][j];
                 }
-                means[i] = sum / cols;
             }
-            return new GV.Vector(means);
+            return new GV.Vector(means.map(m => m / mv.rows[0].length));
         }
     }
+    throw new Error('Unsupported operation');
 }
 
-// Variance of a vector or matrix
-GV.var = (mv, axis=null, ddof=0) => {
-    if(mv.type === 'Vector') {
-        const mean = GV.mean(mv);
-        let sumSquaredDiff = 0;
-        const len = mv.length;
-        for(let i = 0; i < len; i++) {
-            const diff = mv[i] - mean;
-            sumSquaredDiff += diff * diff;
-        }
-        return sumSquaredDiff / (len - ddof);
-    } else if(mv.type === 'Matrix') {
-        if(axis === null) {
-            const mean = GV.mean(mv);
-            let sumSquaredDiff = 0;
-            const rows = mv.length;
-            const cols = mv[0].length;
-            const size = rows * cols;
-            for(let i = 0; i < rows; i++) {
-                const row = mv[i];
-                for(let j = 0; j < cols; j++) {
-                    const diff = row[j] - mean;
-                    sumSquaredDiff += diff * diff;
-                }
-            }
-            return sumSquaredDiff / (size - ddof);
-        } else if(axis === 0) {
-            // Column-wise variance
-            const means = GV.mean(mv, 0);
-            const rows = mv.length;
-            const cols = mv[0].length;
-            const variances = new Array(cols);
-            for(let j = 0; j < cols; j++) {
-                let sumSquaredDiff = 0;
-                for(let i = 0; i < rows; i++) {
-                    const diff = mv[i][j] - means[j];
-                    sumSquaredDiff += diff * diff;
-                }
-                variances[j] = sumSquaredDiff / (rows - ddof);
-            }
-            return new GV.Vector(variances);
-        } else if(axis === 1) {
-            // Row-wise variance
-            const means = GV.mean(mv, 1);
-            const cols = mv[0].length;
-            const variances = new Array(mv.length);
-            for(let i = 0; i < mv.length; i++) {
-                let sumSquaredDiff = 0;
-                const row = mv[i];
-                for(let j = 0; j < cols; j++) {
-                    const diff = row[j] - means[i];
-                    sumSquaredDiff += diff * diff;
-                }
-                variances[i] = sumSquaredDiff / (cols - ddof);
-            }
-            return new GV.Vector(variances);
-        }
-    }
+/**
+ * Calculates the variance of elements in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to calculate variance for
+ * @param {number|null} axis - The axis along which to calculate variance (0 for columns, 1 for rows, null for global variance)
+ * @param {number} [ddof=0] - Delta degrees of freedom. The divisor used in calculations is N - ddof, where N represents the number of elements
+ * @returns {number|Vector} The variance value(s)
+ */
+GV.var = (mv, axis = null, ddof = 0) => {
+	if(mv.type === 'Vector') {
+		if(axis !== null) {
+			throw new Error('Vector variance operation does not support axis parameter');
+		}
+		const n = mv.values.length;
+		const meanVal = GV.mean(mv);
+		let sumSquaredDiff = 0;
+		for(let i = 0; i < n; i++) {
+			const diff = mv.values[i] - meanVal;
+			sumSquaredDiff += diff * diff;
+		}
+		return sumSquaredDiff / (n - ddof);
+	} else if(mv.type === 'Matrix') {
+		if(axis === null) {
+			// Global variance
+			const meanVal = GV.mean(mv);
+			let sumSquaredDiff = 0;
+			const rows = mv.length;
+			const cols = mv[0].length;
+			for(let i = 0; i < rows; i++) {
+				for(let j = 0; j < cols; j++) {
+					const diff = mv[i][j] - meanVal;
+					sumSquaredDiff += diff * diff;
+				}
+			}
+			return sumSquaredDiff / (rows * cols - ddof);
+		} else if(axis === 0) {
+			// Variance along columns
+			const means = GV.mean(mv, 0);
+			const rows = mv.length;
+			const cols = mv[0].length;
+			const variances = new Array(cols);
+			for(let j = 0; j < cols; j++) {
+				let sumSquaredDiff = 0;
+				for(let i = 0; i < rows; i++) {
+					const diff = mv[i][j] - means.values[j];
+					sumSquaredDiff += diff * diff;
+				}
+				variances[j] = sumSquaredDiff / (rows - ddof);
+			}
+			return new GV.Vector(variances);
+		} else if(axis === 1) {
+			// Variance along rows
+			const means = GV.mean(mv, 1);
+			const rows = mv.length;
+			const cols = mv[0].length;
+			const variances = new Array(rows);
+			for(let i = 0; i < rows; i++) {
+				let sumSquaredDiff = 0;
+				for(let j = 0; j < cols; j++) {
+					const diff = mv[i][j] - means.values[i];
+					sumSquaredDiff += diff * diff;
+				}
+				variances[i] = sumSquaredDiff / (cols - ddof);
+			}
+			return new GV.Vector(variances);
+		}
+	}
 }
 
-// Standard deviation of a vector or matrix
+/**
+ * Calculates the standard deviation of elements in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to calculate standard deviation for
+ * @param {number|null} axis - The axis along which to calculate standard deviation (0 for columns, 1 for rows, null for global standard deviation)
+ * @param {number} [ddof=0] - Delta degrees of freedom. The divisor used in calculations is N - ddof, where N represents the number of elements
+ * @returns {number|Vector} The standard deviation value(s)
+ */
 GV.std = (mv, axis=null, ddof=0) => {
     const variance = GV.var(mv, axis, ddof);
     if(mv.type === 'Vector' || axis === null) {
@@ -1578,14 +1790,20 @@ GV.std = (mv, axis=null, ddof=0) => {
     return Math.sqrt(variance);
 }
 
-// Minimum value in a vector or matrix
-GV.min = (mv, axis=null) => {
+/**
+ * Finds the minimum value in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to find the minimum value in
+ * @param {number|null} axis - The axis along which to find the minimum (0 for columns, 1 for rows, null for global minimum)
+ * @returns {number|Vector} The minimum value(s)
+ */
+GV.min = (mv, axis = null) => {
 	if(mv.type === 'Vector') {
-		// Use a single loop for better performance
-		let min = mv[0];
-		const len = mv.length;
-		for(let i = 1; i < len; i++) {
-			if(mv[i] < min) min = mv[i];
+		if(axis !== null) {
+			throw new Error('Vector min operation does not support axis parameter');
+		}
+		let min = mv.values[0];
+		for(let i = 1; i < mv.values.length; i++) {
+			if(mv.values[i] < min) min = mv.values[i];
 		}
 		return min;
 	} else if(mv.type === 'Matrix') {
@@ -1627,14 +1845,20 @@ GV.min = (mv, axis=null) => {
 	}
 }
 
-// Maximum value in a vector or matrix
-GV.max = (mv, axis=null) => {
+/**
+ * Finds the maximum value in a vector or matrix
+ * @param {Vector|Matrix} mv - The vector or matrix to find the maximum value in
+ * @param {number|null} axis - The axis along which to find the maximum (0 for columns, 1 for rows, null for global maximum)
+ * @returns {number|Vector} The maximum value(s)
+ */
+GV.max = (mv, axis = null) => {
 	if(mv.type === 'Vector') {
-		// Use a single loop for better performance
-		let max = mv[0];
-		const len = mv.length;
-		for(let i = 1; i < len; i++) {
-			if(mv[i] > max) max = mv[i];
+		if(axis !== null) {
+			throw new Error('Vector max operation does not support axis parameter');
+		}
+		let max = mv.values[0];
+		for(let i = 1; i < mv.values.length; i++) {
+			if(mv.values[i] > max) max = mv.values[i];
 		}
 		return max;
 	} else if(mv.type === 'Matrix') {
@@ -1678,7 +1902,11 @@ GV.max = (mv, axis=null) => {
 
 // ******************* Linear Algebra *********************
 
-// Determinant of a matrix
+/**
+ * Calculates the determinant of a matrix
+ * @param {Matrix} m - The matrix to calculate the determinant of
+ * @returns {number|null} The determinant of the matrix
+ */	
 GV.det = (m) => {
     if(m.type !== 'Matrix') {
         console.error('Input must be a Matrix');
@@ -1713,7 +1941,11 @@ GV.det = (m) => {
     return det;
 };
 
-// Rank of a matrix
+/**
+ * Calculates the rank of a matrix
+ * @param {Matrix} m - The matrix to calculate the rank of
+ * @returns {number} The rank of the matrix
+ */	
 GV.rank = (m) => {
 	// Convert to row echelon form and count non-zero rows
 	const ref = GV.rowEchelonForm(m);
@@ -1733,7 +1965,11 @@ GV.rank = (m) => {
 	return rank;
 }
 
-// Row echelon form of a matrix
+/**
+ * Calculates the row echelon form of a matrix
+ * @param {Matrix} m - The matrix to calculate the row echelon form of
+ * @returns {Matrix} The row echelon form of the matrix
+ */	
 GV.rowEchelonForm = (m) => {
 	// Create a copy of the matrix
 	let ref = [];
@@ -1790,7 +2026,13 @@ GV.rowEchelonForm = (m) => {
 	return ref;
 }
 
-// Eigenvalues of a matrix (simple power iteration method)
+/**
+ * Calculates the eigenvalues of a matrix using the simple power iteration method
+ * @param {Matrix} m - The matrix to calculate the eigenvalues of
+ * @param {number} [maxIter=100] - The maximum number of iterations
+ * @param {number} [tol=1e-10] - The tolerance for convergence
+ * @returns {Vector|null} The eigenvalues of the matrix
+ */	
 GV.eigenvalues = (m, maxIter=100, tol=1e-10) => {
 	if(m.length !== m[0].length) {
 		console.error('Matrix must be square to compute eigenvalues');
@@ -1832,7 +2074,11 @@ GV.eigenvalues = (m, maxIter=100, tol=1e-10) => {
 	return prevLambda;
 }
 
-// Trace of a matrix
+/**
+ * Calculates the trace of a matrix
+ * @param {Matrix} m - The matrix to calculate the trace of
+ * @returns {number|null} The trace of the matrix
+ */	
 GV.trace = (m) => {
 	if(m.length !== m[0].length) {
 		console.error('Matrix must be square to compute trace');
@@ -1849,7 +2095,13 @@ GV.trace = (m) => {
 
 // ******************* Utility Functions *********************
 
-// Reshape a vector into a matrix
+/**
+ * Reshapes a vector into a matrix
+ * @param {Vector} v - The vector to reshape
+ * @param {number} rows - The number of rows in the matrix
+ * @param {number} cols - The number of columns in the matrix
+ * @returns {Matrix|null} The reshaped matrix
+ */	
 GV.reshape = (v, rows, cols) => {
 	if(v.type !== 'Vector') {
 		console.error('Input must be a Vector');
@@ -1873,7 +2125,11 @@ GV.reshape = (v, rows, cols) => {
 	return new GV.Matrix(matrix);
 }
 
-// Flatten a matrix into a vector
+/**
+ * Flattens a matrix into a vector
+ * @param {Matrix} m - The matrix to flatten
+ * @returns {Vector|null} The flattened vector
+ */	
 GV.flatten = (m) => {
 	if(m.type !== 'Matrix') {
 		console.error('Input must be a Matrix');
@@ -1894,7 +2150,13 @@ GV.flatten = (m) => {
 	return new GV.Vector(vector);
 }
 
-// Concatenate vectors or matrices
+/**
+ * Concatenates vectors or matrices
+ * @param {Vector|Matrix} a - The first input
+ * @param {Vector|Matrix} b - The second input
+ * @param {number} [axis=0] - The axis along which to concatenate (0 for rows, 1 for columns)
+ * @returns {Vector|Matrix|null} The concatenated vector or matrix
+ */	
 GV.concat = (a, b, axis=0) => {
 	if(a.type !== b.type) {
 		console.error('Both inputs must be of the same type');
@@ -1965,7 +2227,11 @@ GV.concat = (a, b, axis=0) => {
 	}
 }
 
-// Create a diagonal matrix from a vector
+/**
+ * Creates a diagonal matrix from a vector
+ * @param {Vector} v - The vector to create the diagonal matrix from
+ * @returns {Matrix|null} The diagonal matrix
+ */	
 GV.diag = (v) => {
 	if(v.type !== 'Vector') {
 		console.error('Input must be a Vector');
@@ -1982,7 +2248,11 @@ GV.diag = (v) => {
 	return new GV.Matrix(matrix);
 }
 
-// Extract diagonal from a matrix
+/**
+ * Extracts the diagonal from a matrix
+ * @param {Matrix} m - The matrix to extract the diagonal from
+ * @returns {Vector|null} The diagonal of the matrix
+ */	
 GV.diagonal = (m) => {
 	if(m.type !== 'Matrix') {
 		console.error('Input must be a Matrix');
@@ -2003,7 +2273,11 @@ GV.diagonal = (m) => {
 	return new GV.Vector(diagonal);
 }
 
-// Create an identity matrix
+/**
+ * Creates an identity matrix
+ * @param {number} n - The size of the identity matrix
+ * @returns {Matrix|null} The identity matrix
+ */	
 GV.eye = (n) => {
 	// Pre-allocate matrix
 	const matrix = Array(n);
@@ -2015,7 +2289,11 @@ GV.eye = (n) => {
 	return new GV.Matrix(matrix);
 }
 
-// Create a random matrix with values between 0 and 1
+/**
+ * Creates a random matrix with values between 0 and 1
+ * @param {...number} shape - The dimensions of the matrix
+ * @returns {Matrix|null} The random matrix
+ */	
 GV.rand = (...shape) => {
 	if(shape.length === 0) return new GV.Vector([Math.random()]);
 	if(shape.length === 1) {
@@ -2039,7 +2317,11 @@ GV.rand = (...shape) => {
 	return new GV.Matrix(matrix);
 }
 
-// Create a random matrix with values from a normal distribution
+/**
+ * Creates a random matrix with values from a normal distribution
+ * @param {...number} shape - The dimensions of the matrix
+ * @returns {Matrix|null} The random matrix
+ */	
 GV.randn = (...shape) => {
 
 	const normal = () => {
@@ -2070,7 +2352,13 @@ GV.randn = (...shape) => {
 	return new GV.Matrix(matrix);
 }
 
-// Reshape a matrix into a different shape
+/**
+ * Reshapes a matrix into a different shape
+ * @param {Matrix} m - The matrix to reshape
+ * @param {number} rows - The number of rows in the new shape
+ * @param {number} cols - The number of columns in the new shape
+ * @returns {Matrix|null} The reshaped matrix
+ */	
 GV.reshapeMatrix = (m, rows, cols) => {
 	if(m.type !== 'Matrix') {
 		console.error('Input must be a Matrix');
@@ -2106,7 +2394,12 @@ GV.reshapeMatrix = (m, rows, cols) => {
 	return new GV.Matrix(newMatrix);
 }
 
-// Element-wise equality comparison between arrays
+/**
+ * Element-wise equality comparison between arrays
+ * @param {Vector|Matrix} a - The first input
+ * @param {Vector|Matrix} b - The second input
+ * @returns {Matrix|Vector|null} The result of the comparison
+ */	
 GV.equal = (a, b) => {
     if (!a || !b) {
         console.error('GV.equal: One or both inputs are undefined or null');
@@ -2128,6 +2421,11 @@ GV.equal = (a, b) => {
     }
 };
 
+/**
+ * Transposes a matrix
+ * @param {Matrix} m - The matrix to transpose
+ * @returns {Matrix|null} The transposed matrix
+ */	
 GV.transpose = (m) => {
     if(m.type !== 'Matrix') {
         console.error('Input must be a Matrix');
@@ -2149,6 +2447,11 @@ GV.transpose = (m) => {
     return new GV.Matrix(transposed);
 }
 
+/**
+ * Performs LU decomposition on a matrix
+ * @param {Matrix} m - The matrix to decompose
+ * @returns {Object|null} The LU decomposition of the matrix
+ */	
 GV._luDecomposition = (m) => {
     const n = m.length;
     const L = Array(n);
@@ -2185,6 +2488,11 @@ GV._luDecomposition = (m) => {
     return { L, U };
 }
 
+/**
+ * Calculates the inverse of a matrix
+ * @param {Matrix} m - The matrix to calculate the inverse of
+ * @returns {Matrix|null} The inverse of the matrix
+ */	
 GV.inv = (m) => {
     if(m.type !== 'Matrix') {
         console.error('Input must be a Matrix');
@@ -2249,7 +2557,10 @@ GV.inv = (m) => {
     return new GV.Matrix(X);
 };
 
-// Web Worker for parallel matrix operations
+/**
+ * Creates a worker for parallel matrix operations
+ * @returns {Worker|null} The worker
+ */	
 GV._createWorker = () => {
     const workerCode = `
         import { parentPort } from 'worker_threads';
@@ -2395,7 +2706,12 @@ GV._createWorker = () => {
     return new Worker(workerPath, { type: 'module' });
 };
 
-// Parallel matrix multiplication
+/**
+ * Parallel matrix multiplication
+ * @param {Matrix} a - The first matrix
+ * @param {Matrix} b - The second matrix
+ * @returns {Matrix|null} The result of the multiplication
+ */	
 GV._parallelMatrixMultiply = async (a, b) => {
     const numWorkers = cpus().length;
     const rowsPerWorker = Math.ceil(a.length / numWorkers);
@@ -2442,7 +2758,11 @@ GV._parallelMatrixMultiply = async (a, b) => {
     });
 };
 
-// Update determinant calculation to use parallel processing
+/**
+ * Calculates the determinant of a matrix
+ * @param {Matrix} m - The matrix to calculate the determinant of
+ * @returns {number|null} The determinant of the matrix
+ */	
 GV.det = (m) => {
     if(m.type !== 'Matrix') {
         console.error('Input must be a Matrix');
@@ -2510,7 +2830,11 @@ GV.det = (m) => {
     });
 };
 
-// Update inverse calculation to use parallel processing
+/**
+ * Calculates the inverse of a matrix
+ * @param {Matrix} m - The matrix to calculate the inverse of
+ * @returns {Matrix|null} The inverse of the matrix
+ */	
 GV.inv = (m) => {
     if(m.type !== 'Matrix') {
         console.error('Input must be a Matrix');
@@ -2584,7 +2908,13 @@ GV.inv = (m) => {
     });
 };
 
-// Matrix-Vector Operations
+/**
+ * Adds a vector to a matrix
+ * @param {Matrix} m - The matrix to add the vector to
+ * @param {Vector} v - The vector to add
+ * @param {boolean} [inplace=false] - Whether to modify the matrix in place
+ * @returns {Matrix|null} The result of the addition
+ */	
 GV.addMatrixVector = (m, v, inplace=false) => {
     if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
         console.error('Invalid inputs to addMatrixVector:', { m, v });
@@ -2615,6 +2945,13 @@ GV.addMatrixVector = (m, v, inplace=false) => {
     return new GV.Matrix(newM);
 }
 
+/**
+ * Subtracts a vector from a matrix
+ * @param {Matrix} m - The matrix to subtract the vector from
+ * @param {Vector} v - The vector to subtract
+ * @param {boolean} [inplace=false] - Whether to modify the matrix in place
+ * @returns {Matrix|null} The result of the subtraction
+ */	
 GV.subtractMatrixVector = (m, v, inplace=false) => {
     if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
         console.error('Invalid inputs to subtractMatrixVector:', { m, v });
@@ -2648,6 +2985,13 @@ GV.subtractMatrixVector = (m, v, inplace=false) => {
     return new GV.Matrix(newM);
 }
 
+/**
+ * Multiplies a matrix by a vector
+ * @param {Matrix} m - The matrix to multiply
+ * @param {Vector} v - The vector to multiply
+ * @param {boolean} [inplace=false] - Whether to modify the matrix in place
+ * @returns {Matrix|null} The result of the multiplication
+ */	
 GV.multiplyMatrixVector = (m, v, inplace=false) => {
     if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
         console.error('Invalid inputs to multiplyMatrixVector:', { m, v });
@@ -2678,6 +3022,13 @@ GV.multiplyMatrixVector = (m, v, inplace=false) => {
     return new GV.Matrix(newM);
 }
 
+/**
+ * Divides a matrix by a vector
+ * @param {Matrix} m - The matrix to divide
+ * @param {Vector} v - The vector to divide
+ * @param {boolean} [inplace=false] - Whether to modify the matrix in place
+ * @returns {Matrix|null} The result of the division
+ */	
 GV.divideMatrixVector = (m, v, inplace=false) => {
     if (!m || !v || m.type !== 'Matrix' || v.type !== 'Vector') {
         console.error('Invalid inputs to divideMatrixVector:', { m, v });

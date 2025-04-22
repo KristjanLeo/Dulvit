@@ -8,8 +8,19 @@ const {
     subtractMatrix
 } = GV;
 
+/**
+ * Activation prototype
+ * 
+ * @type {Object}
+ */
 const activationProto = {};
 
+/**
+ * Swish activation function
+ * 
+ * @class Swish
+ * @implements {activationProto}
+ */
 export class Swish {
     constructor() {
         this.f = (x) => {
@@ -35,6 +46,12 @@ export class Swish {
     }
 }
 
+/**
+ * Sigmoid activation function
+ * 
+ * @class Sigmoid
+ * @implements {activationProto}
+ */
 export class Sigmoid {
     constructor() {
         this.f = (x) => {
@@ -44,6 +61,12 @@ export class Sigmoid {
     }
 }
 
+/**
+ * ReLU activation function
+ * 
+ * @class ReLU
+ * @implements {activationProto}
+ */
 export class ReLU {
     constructor() {
         this.f = (x) => {
@@ -54,6 +77,12 @@ export class ReLU {
     }
 }
 
+/**
+ * LeakyReLU activation function
+ * 
+ * @class LeakyReLU
+ * @implements {activationProto}
+ */
 export class LeakyReLU {
     constructor(alpha = 0.01) {
         this.alpha = alpha;
@@ -71,6 +100,12 @@ export class LeakyReLU {
     }
 }
 
+/**
+ * Tanh activation function
+ * 
+ * @class Tanh
+ * @implements {activationProto}
+ */
 export class Tanh {
     constructor() {
         this.f = (x) => {
@@ -81,6 +116,12 @@ export class Tanh {
     }
 }
 
+/**
+ * ELU activation function
+ * 
+ * @class ELU
+ * @implements {activationProto}
+ */
 export class ELU {
     constructor(alpha = 1.0) {
         this.alpha = alpha;

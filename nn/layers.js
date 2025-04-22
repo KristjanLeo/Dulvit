@@ -13,6 +13,11 @@ const {
     multiplyMatrix
 } = GV;
 
+/**
+ * Layer prototype
+ * 
+ * @type {Object}
+ */
 const LayerProto = {
     updateWeights(dW, lr) {
         // Check if dW is properly defined
@@ -48,6 +53,12 @@ const LayerProto = {
     }
 };
 
+/**
+ * Dense layer
+ * 
+ * @class Dense
+ * @implements {LayerProto}
+ */
 export class Dense {
     constructor(size, activation) {
         this.W = null;
@@ -131,6 +142,12 @@ export class Dense {
     }
 }
 
+/**
+ * Dropout layer
+ * 
+ * @class Dropout
+ * @implements {LayerProto}
+ */
 export class Dropout {
     constructor(rate = 0.5) {
         this.rate = rate;
@@ -168,6 +185,12 @@ export class Dropout {
     }
 }
 
+/**
+ * Convolutional 2D layer
+ * 
+ * @class Conv2D
+ * @implements {LayerProto}
+ */
 export class Conv2D {
     constructor(filters, kernelSize, stride = 1, padding = 'same') {
         this.filters = filters;

@@ -18,6 +18,12 @@ const {
 
 const LossFunctionProto = {};
 
+/**
+ * Softmax loss function
+ * 
+ * @class Softmax
+ * @implements {LossFunctionProto}
+ */
 export class Softmax {
     constructor() {
         this.f = (o, y) => {
@@ -38,6 +44,12 @@ export class Softmax {
     }
 }
 
+/**
+ * Square loss function
+ * 
+ * @class SquareLoss
+ * @implements {LossFunctionProto}
+ */
 export class SquareLoss {
     constructor() {
         this.f = (o, y) => {
@@ -133,6 +145,12 @@ export class SquareLoss {
     }
 }
 
+/**
+ * Cross entropy loss function
+ * 
+ * @class CrossEntropy
+ * @implements {LossFunctionProto}
+ */
 export class CrossEntropy {
     constructor() {
         this.f = (o, y) => {
@@ -155,6 +173,12 @@ export class CrossEntropy {
     }
 }
 
+/**
+ * Hinge loss function
+ * 
+ * @class Hinge
+ * @implements {LossFunctionProto}
+ */
 export class Hinge {
     constructor() {
         this.f = (o, y) => {
@@ -178,6 +202,12 @@ export class Hinge {
     }
 }
 
+/**
+ * Huber loss function
+ * 
+ * @class Huber
+ * @implements {LossFunctionProto}
+ */
 export class Huber {
     constructor(delta = 1.0) {
         this.delta = delta;

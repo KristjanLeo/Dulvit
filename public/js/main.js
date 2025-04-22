@@ -190,6 +190,7 @@ const metricsHistory = {
 
 // Initialize dashboard elements
 const updateDashboardMetrics = (state, metrics) => {
+
     // Update metrics history
     metricsHistory.loss.push(metrics.loss);
     metricsHistory.validationLoss.push(metrics.valLoss || null);
